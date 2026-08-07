@@ -49,3 +49,52 @@ jobs:
             fi
           done
           exit $fail
+
+      # The semester-project checks (week 4 on) live under project/, not under
+      # week-NN/, because the lab's `cp -r ../dotnet-db-starters/week-NN .`
+      # would otherwise drag them into the coursework repo where they do not
+      # belong. So the loop above cannot see them, and they need their own step.
+      #
+      # There is no student project to build them against — the student runs
+      # `dotnet new` themselves — so CI makes an EMPTY one. That is not a
+      # workaround; it is the course's own rule enforced automatically:
+      #
+      #     run every new check against the untouched `dotnet new console`
+      #     template, because anything that passes there is free points.
+      #
+      # An untouched project must score 0. If any check goes green here, it is
+      # green for every student who created a repo and did nothing in it.
+      - name: Project checks must score ZERO against an empty project
+        run: |
+          fail=0
+          shopt -s nullglob
+          for checks in project/week-*/Project.Checks; do
+            week=$(dirname "$checks")
+            echo "── $checks (against an untouched dotnet new console)"
+            rm -rf /tmp/probe && mkdir -p /tmp/probe
+            dotnet new console -o /tmp/probe/Project --no-restore
+            cp -r "$checks" /tmp/probe/Project.Checks
+            if ! dotnet build /tmp/probe/Project.Checks -warnaserror -nologo; then
+              echo "::error::$checks does not build"
+              fail=1
+              continue
+            fi
+            code=0
+            printf '\n\n\n\n' | timeout 300 dotnet test /tmp/probe/Project.Checks \
+              --no-build --nologo --logger "trx;LogFileName=r.trx" \
+              --results-directory /tmp/probe/res || code=$?
+            if [ "$code" -gt 1 ]; then
+              echo "::error::$checks exited $code (crash, hang or runner error)"
+              fail=1
+              continue
+            fi
+            # Any outcome="Passed" here is a check an empty project satisfies.
+            if grep -q 'outcome="Passed"' /tmp/probe/res/r.trx; then
+              echo "::error::$checks has a check that PASSES on an empty project — free points"
+              grep -o 'testName="[^"]*" *[^>]*outcome="Passed"' /tmp/probe/res/r.trx || true
+              fail=1
+            else
+              echo "   ✓ 0 passed, as required"
+            fi
+          done
+          exit $fail
