@@ -21,9 +21,18 @@ const string Coral = "#f78c6c";
 const string Dim = "#5c6370";
 const string Fg = "#d7dae0";
 
-AnsiConsole.Write(new Rule($"[{Violet} bold]KDXR 88.1 . THE OWL[/] [{Dim}]. overnight desk[/]")
-    .RuleStyle(Style.Parse(Dim))
-    .LeftJustified());
+// The station ident. The owl sits in consts on purpose: written inline, C# would
+// read {o,o} as an interpolation hole and refuse to build (CS0103, twice).
+const string OwlTop = "{o,o}";
+const string OwlMid = "|)__)";
+const string OwlBot = "-\"-\"-";
+
+AnsiConsole.Write(new Panel(
+        $"[{Coral}]{OwlTop}[/]  [{Violet} bold]KDXR 88.1 FM[/]\n"
+      + $"[{Coral}]{OwlMid}[/]  [{Violet} bold]THE OWL[/]\n"
+      + $"[{Coral}]{OwlBot}[/]  [{Dim}]overnight desk[/]")
+    .Border(BoxBorder.Rounded)
+    .BorderColor(Color.FromHex(Dim)));
 AnsiConsole.WriteLine();
 
 Console.Write("DJ on duty: ");
