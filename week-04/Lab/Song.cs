@@ -43,16 +43,6 @@ public class Song
     // negative one would run the board's arithmetic backwards.
     public int Seconds;
 
-    // TODO — Task 5. PlaysTonight.
-    // This one is different, and it is the point of the whole night:
-    //
-    //     public int PlaysTonight { get; private set; }
-    //
-    // `private set` means the outside world can READ it and cannot WRITE it.
-    // The only way the number moves is Play(), below — so the count can never
-    // say something that did not happen.
-    public int PlaysTonight;
-
     // TODO — Task 4.
     // The length, as a human reads it: 227 seconds is "3:47".
     // Nothing stores this. It is worked out from Seconds every time somebody
@@ -63,6 +53,16 @@ public class Song
     // Whole ÷ whole is whole — week 1's lesson, finally being useful on
     // purpose. The :00 pads the seconds so 3:7 comes out as 3:07.
     public string Length => "0:00";
+
+    // TODO — Task 5. PlaysTonight.
+    // This one is different, and it is the point of the whole night:
+    //
+    //     public int PlaysTonight { get; private set; }
+    //
+    // `private set` means the outside world can READ it and cannot WRITE it.
+    // The only way the number moves is Play(), below — so the count can never
+    // say something that did not happen.
+    public int PlaysTonight;
 
     // TODO — Task 5.
     // One play. Add one to PlaysTonight — and once PlaysTonight has a
