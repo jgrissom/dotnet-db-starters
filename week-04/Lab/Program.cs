@@ -39,8 +39,9 @@ string djName = Console.ReadLine() ?? "somebody";
 AnsiConsole.MarkupLine($"[{Fg}]{Markup.Escape(Broadcast.SignOn(djName))}[/]");
 AnsiConsole.WriteLine();
 
-// Three carts loaded before the shift starts. (A "cart" is what a station
-// calls one recorded item — the word outlived the tape it came on.)
+// Three carts loaded before the shift starts. (A "cart" is one playable thing:
+// one song, one jingle, one ad. Short for "cartridge" — a case of looped tape
+// that played once and rewound itself. The tape is gone; the word stayed.)
 var rotation = new Rotation();
 rotation.Add(new Song("Nightjar", "The Lamplighters", 227));
 rotation.Add(new Song("Slack Water", "Marguerite Vance", 252));
