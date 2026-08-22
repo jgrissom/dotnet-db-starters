@@ -25,19 +25,21 @@ public class Caller
 
     // TODO — Task 2. The count that belongs to nobody.
     //
-    // Three members ship here and all three come out: the field, the
-    // property that reads it, and the method that moves it. `_calls` is one
-    // number for the whole class, and the property in front of it just
-    // reads that one number out, so every caller reports the same total.
+    // `_calls` is one number for the whole class, and the property in front
+    // of it just reads that one number out, so every caller reports the
+    // same total.
     //
-    // Replace them with the shape you already wrote last week for
-    // PlaysTonight — a property anybody can read and nobody outside this
-    // class can write, and a method that is the only way it moves. Two
-    // members where there were three. It is in your own week-04/Lab/Song.cs
-    // if you want to look at it.
+    // Three members, three different jobs — only one of them actually goes:
     //
-    // Delete the field. A count that belongs to one caller does not need
-    // one, and leaving it there is what keeps the bug alive.
+    //   _calls        DELETE it. An instance property brings its own field.
+    //   CallsTonight  REWRITE it to hold its own number, not read a shared
+    //                 one. Same name, still an int.
+    //   Calls()       KEEP it — only the body changes, because the field it
+    //                 adds to is about to stop existing.
+    //
+    // The shape is already in this folder: Song.cs ships finished and holds
+    // PlaysTonight and Play(), which is exactly this with different names.
+    // Read it; don't change it.
     private static int _calls;
 
     public int CallsTonight => _calls;
