@@ -25,14 +25,16 @@ public class Caller
 
     // TODO — Task 2. The count that belongs to nobody.
     //
-    // These three lines are the bug. `_calls` is one number for the whole
-    // class, and the property in front of it just reads that one number
-    // out, so every caller reports the same total.
+    // Three members ship here and all three come out: the field, the
+    // property that reads it, and the method that moves it. `_calls` is one
+    // number for the whole class, and the property in front of it just
+    // reads that one number out, so every caller reports the same total.
     //
-    // Replace all three with the shape you already wrote last week for
+    // Replace them with the shape you already wrote last week for
     // PlaysTonight — a property anybody can read and nobody outside this
-    // class can write, and a method that is the only way it moves. It is
-    // in your own week-04/Lab/Song.cs if you want to look at it.
+    // class can write, and a method that is the only way it moves. Two
+    // members where there were three. It is in your own week-04/Lab/Song.cs
+    // if you want to look at it.
     //
     // Delete the field. A count that belongs to one caller does not need
     // one, and leaving it there is what keeps the bug alive.
