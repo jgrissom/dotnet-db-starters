@@ -52,8 +52,8 @@ rotation.Add(new Song("Nightjar", "The Lamplighters", 227));
 rotation.Add(new Song("Slack Water", "Marguerite Vance", 252));
 rotation.Add(new Song("Long Way Round", "The Ferrymen", 331));
 
-// The switchboard, and the night up to now. Three people, six calls
-// between them: Dorothy four times the way she does, Bex once for the
+// The switchboard, and the night up to now. Three people, five calls
+// between them: Dorothy three times the way she does, Bex once for the
 // one artist she ever asks for, Teodoro once at 03:20 for Junie.
 var switchboard = new Switchboard();
 
@@ -65,7 +65,6 @@ switchboard.Add(dorothy);
 switchboard.Add(bex);
 switchboard.Add(teodoro);
 
-dorothy.Calls();
 dorothy.Calls();
 dorothy.Calls();
 dorothy.Calls();
