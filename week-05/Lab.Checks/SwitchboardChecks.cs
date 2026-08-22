@@ -245,40 +245,40 @@ public class SwitchboardChecks
     [Fact]
     public void Check5_AndRemembersWhatTheyAskedFor()
     {
-        var favourite = PublicProperty(typeof(Caller), "Favourite");
+        var favorite = PublicProperty(typeof(Caller), "Favorite");
 
-        Assert.True(favourite != null,
-            "Caller has no public property called Favourite. The switchboard's ASKED FOR "
+        Assert.True(favorite != null,
+            "Caller has no public property called Favorite. The switchboard's ASKED FOR "
             + "column reads it by that name.");
 
-        Assert.True(favourite!.GetSetMethod(nonPublic: false) == null,
-            "Favourite has a public setter, so anything anywhere can claim Bex asked for "
+        Assert.True(favorite!.GetSetMethod(nonPublic: false) == null,
+            "Favorite has a public setter, so anything anywhere can claim Bex asked for "
             + "something she never asked for.\n"
-            + "    public Song? Favourite { get; private set; }\n"
+            + "    public Song? Favorite { get; private set; }\n"
             + "Asks() is the only way it moves.");
 
         var bex = new Caller("Bex");
 
-        Assert.True(bex.Favourite == null,
-            "A caller who has only just rung already has a Favourite. Before they ask for "
+        Assert.True(bex.Favorite == null,
+            "A caller who has only just rung already has a Favorite. Before they ask for "
             + "anything there is nothing to report, and `null` is the right answer rather "
             + "than a made-up song:\n"
-            + "    public Song? Favourite { get; private set; }\n"
+            + "    public Song? Favorite { get; private set; }\n"
             + "The `?` is what makes null a legal answer for this property.");
 
         var cart = ACart();
         int before = bex.CallsTonight;
         bex.Asks(cart);
 
-        Assert.True(bex.Favourite != null,
-            "Bex asked for something and Favourite is still null. Asks() stores the song it "
+        Assert.True(bex.Favorite != null,
+            "Bex asked for something and Favorite is still null. Asks() stores the song it "
             + "was handed:\n"
-            + "    Favourite = song;");
+            + "    Favorite = song;");
 
-        Assert.True(ReferenceEquals(bex.Favourite, cart),
-            "Bex's Favourite is a Song, but not the one she asked for — Asks() built a new "
+        Assert.True(ReferenceEquals(bex.Favorite, cart),
+            "Bex's Favorite is a Song, but not the one she asked for — Asks() built a new "
             + "one instead of keeping the one it was handed.\n"
-            + "    Favourite = song;\n"
+            + "    Favorite = song;\n"
             + "That matters more than it looks: the song she asked for is the cart in the "
             + "rotation, so when it plays, the play count she is looking at is the real "
             + "one. Copy it and she is looking at a photograph of it.");
@@ -289,7 +289,7 @@ public class SwitchboardChecks
             + "Switchboard.Take already counted the call when it put her on the line, so "
             + "counting it again in Asks() puts every regular up by two for one phone call. "
             + "Asks() stores the song and nothing else:\n"
-            + "    public void Asks(Song song) { Favourite = song; }\n"
+            + "    public void Asks(Song song) { Favorite = song; }\n"
             + "One rule, one place — the same reason Count asks the list instead of keeping "
             + "a number beside it.");
 

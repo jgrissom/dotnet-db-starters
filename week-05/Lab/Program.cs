@@ -162,13 +162,13 @@ void DrawSwitchboard()
 
     foreach (Caller caller in switchboard.All())
     {
-        // Favourite is a Song? — there may not be one. `?.` asks for the
+        // Favorite is a Song? — there may not be one. `?.` asks for the
         // title only if there is a song to ask, and `??` supplies a dash
         // when there isn't.
         board.AddRow(
             $"[{Fg}]{Markup.Escape(caller.Name)}[/]",
             $"[{Coral}]{caller.CallsTonight}[/]",
-            $"[{Dim}]{Markup.Escape(caller.Favourite?.Title ?? "-")}[/]");
+            $"[{Dim}]{Markup.Escape(caller.Favorite?.Title ?? "-")}[/]");
     }
 
     AnsiConsole.Write(board);
