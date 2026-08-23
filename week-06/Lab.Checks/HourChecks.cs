@@ -309,10 +309,28 @@ public class HourChecks
             + "line is the kind, then the cue:\n"
             + "        aired.Add($\"{item.Kind} - {item.Cue}\");");
 
-        Assert.True(aired[2].Contains("2 left"),
-            $"The third line back was \"{aired[2]}\" — the ad, just after it aired, and its "
-            + "cue should already say 2 left. Play() the item BEFORE you read its Cue: the "
-            + "desk prints what happened, not what was about to.");
+        // The ad's cue has to move when it airs — the lab asks for that outright,
+        // because it is the only thing on screen that proves the read order.
+        // ⚠️ Compared against the student's OWN wording, never against mine.
+        var unaired = (IScheduleItem)new Ad("Pham's Bakery", "open at five", 3);
+        string before = unaired.Cue;
+        string after = ((IScheduleItem)ad).Cue;
+
+        Assert.True(before != after,
+            $"Ad.Cue says \"{after}\" both before and after the spot airs. It has to show "
+            + "how many runs are left on the buy — that is what the desk prints, and it is "
+            + "the only thing on the screen that says an airing actually happened:\n"
+            + "    public string Cue => $\"{Sponsor} - \\\"{Copy}\\\" ({Remaining} left)\";\n"
+            + "The wording is yours. The count isn't optional.");
+
+        Assert.True(aired[2].Contains(after) && !aired[2].Contains(before),
+            $"The third line back was \"{aired[2]}\" — the ad, just after it aired. Its cue "
+            + $"reads \"{before}\" before an airing and \"{after}\" after one, and the line "
+            + "the desk printed is the BEFORE one.\n"
+            + "Play() the item, then read its Cue. The desk prints what happened, not what "
+            + "was about to:\n"
+            + "        item.Play();\n"
+            + "        aired.Add($\"{item.Kind} - {item.Cue}\");");
 
         hour.All().Clear();
         Assert.True(hour.Count == 4,

@@ -53,8 +53,9 @@ public class Song : IScheduleItem
         Seconds = seconds;
     }
 
-    // TODO — Task 2. Two members, and they are the entire cost of keeping
-    // the promise. These two compile and they answer nothing.
+    // TODO — Task 2. REWRITE these two. Nothing else in this file changes,
+    // and these two are the entire cost of keeping the promise: they compile
+    // exactly as they are, and they answer nothing.
     //
     //   Kind is one word for the KIND column: this is a SONG.
     //   Cue is what the DJ reads off the screen — the title and who it is by.

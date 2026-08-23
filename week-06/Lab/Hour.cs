@@ -26,8 +26,13 @@ public class Hour
         return new List<IScheduleItem>(_items);
     }
 
-    // TODO — Task 5. The hour has to add up. Walk the items, add up their
-    // Seconds, hand back the total. Nothing in here knows what a song is.
+    // TODO — Task 5. REPLACE this one. The hour has to add up: walk the items,
+    // add up their Seconds, hand back the total. Nothing in here knows what a
+    // song is.
+    //
+    // ⚠️ `=> 0` computes an answer rather than holding one, so there is no
+    // room in it for a loop. It becomes `{ get { ... } }` — the shape is in
+    // the notes.
     public int TotalSeconds => 0;
 
     // TODO — Task 5. Put the hour on air.

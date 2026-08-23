@@ -19,16 +19,20 @@ public class Ad
         Remaining = runs;
     }
 
-    // TODO — Task 4.
+    // Remaining ships finished and is already the right shape: how many runs
+    // are left on the buy, readable anywhere, writable only in here. Leave it
+    // alone. It is the thing your Play() spends.
+    public int Remaining { get; private set; }
+
+    // TODO — Task 4. Nothing above this line changes. Two things to add:
     //
-    //   1. `: IScheduleItem` after the class name. Build, read the list.
-    //   2. Remaining is spelled that way because the checks read it by
-    //      name — it is how many runs are left on the buy, readable
-    //      anywhere, and Play() is the only thing that spends one.
-    //      ⚠️ It never goes below zero. A station that owes minus one
-    //      spot is a station with a bug.
-    //   3. A spot is thirty seconds, always.
+    //   1. `: IScheduleItem` after the class name. Build before you write a
+    //      member — the compiler lists what you owe, one CS0535 each.
+    //   2. Those four members. Three are quick; Play() is the interesting
+    //      one, because this is the kind that counts DOWN — every airing
+    //      spends one run off Remaining.
+    //      ⚠️ It never goes below zero. A station that owes minus one spot
+    //      is a station with a bug, so ask before you spend.
     //
     //  Then take the `//` off the Ad line in Program.cs.
-    public int Remaining { get; private set; }
 }
