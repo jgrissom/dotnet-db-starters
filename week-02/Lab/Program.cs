@@ -32,6 +32,9 @@ while (true)
         break;
     }
 
+    // Every call goes in the log under a name, even when nobody gives one.
+    Console.WriteLine($"  On the line: {CallerLine.CallerName(caller)}");
+
     if (caller.Trim().ToLower() == "ray")
     {
         Console.Write("  It's Ray. Where's he at? ");
