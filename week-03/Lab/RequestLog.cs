@@ -30,7 +30,7 @@ public static class RequestLog
     //     call it, don't rebuild it.
     //   • CallerLine.CallerName(caller) already cleans up the name.
     //   • Put a new Call on the end of Tonight, and return the on-air line.
-    // Task 3 comes back to this method and adds two lines to it.
+    // Task 3 comes back to this method and adds an if/else to it.
     public static string Log(string? caller, string? request)
     {
         return "";
