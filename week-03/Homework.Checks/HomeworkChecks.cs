@@ -181,6 +181,17 @@ public class HomeworkChecks
             + "Switchboard.CallerName in each, and \"  Marisol  \" can't become a second "
             + "person.");
 
+        Assert.True((int)StudentCode.Call(timesCalled, "  Marisol  ") == 3,
+            $"TimesCalled(\"  Marisol  \") says "
+            + $"{(int)StudentCode.Call(timesCalled, "  Marisol  ")}, but Marisol with spaces "
+            + "round her is still Marisol — three calls.\n"
+            + "Your program hands this method whatever the caller typed, spaces and all, so "
+            + "the cleaning has to happen in HERE as well as in Take:\n"
+            + "    string name = Switchboard.CallerName(caller);\n"
+            + "Store under one spelling and look up under another and the two never meet — "
+            + "the key is there, the lookup misses it, and you get 0 for somebody who has "
+            + "rung all night.");
+
         Assert.True(regulars.Count == 1,
             $"Playlist.Regulars holds {regulars.Count} keys after three calls from one "
             + "person, and it should hold 1. A dictionary key is unique: Marisol's third "
