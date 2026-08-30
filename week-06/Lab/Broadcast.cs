@@ -40,7 +40,7 @@ public static class Broadcast
     }
 
     // New this week. Seconds into m:ss — Song has done this since week 4,
-    // and tonight four different kinds of thing need it. It lives here
+    // and tonight four different kinds of things need it. It lives here
     // because there is only ever one broadcast desk: no state, nothing to
     // make one of, exactly the test you were given last week.
     public static string Clock(int seconds)

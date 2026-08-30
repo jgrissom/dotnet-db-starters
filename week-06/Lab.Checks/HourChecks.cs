@@ -81,7 +81,7 @@ public class HourChecks
         Assert.True(Broadcast.Clock(893) == "14:53",
             $"Broadcast.Clock(893) says \"{Broadcast.Clock(893)}\" and should say \"14:53\". "
             + "It ships finished — it is Song.Length's old body, moved somewhere four "
-            + "different kinds of thing can reach it.");
+            + "different kinds of things can reach it.");
 
         var song = ACart();
         Assert.True(song.Length == "3:47",
@@ -169,7 +169,7 @@ public class HourChecks
             + "the entire reason that column exists.");
 
         Assert.True(ident.Kind != ACart().Kind,
-            $"StationId and Song both call themselves \"{ident.Kind}\". Four kinds of thing "
+            $"StationId and Song both call themselves \"{ident.Kind}\". Four kinds of things "
             + "go through one loop tonight and the KIND column is how the DJ tells them "
             + "apart at four in the morning.");
 

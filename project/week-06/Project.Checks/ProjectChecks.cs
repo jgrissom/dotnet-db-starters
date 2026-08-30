@@ -186,7 +186,7 @@ public class ProjectChecks
         Assert.True(kind != StudentCode.KindOf(item),
             $"Registry and {itemType.Name} both call themselves \"{kind}\". Kind is how "
             + "somebody reading the listing tells one row from another — two different "
-            + "sorts of thing need two different words.");
+            + "sorts of things need two different words.");
 
         var line = StudentCode.LineOf(registry);
         Assert.True(!string.IsNullOrWhiteSpace(line),
@@ -252,7 +252,7 @@ public class ProjectChecks
 
         Assert.True(kinds.Distinct().Count() == 2,
             $"The listing came back with these kinds on it: {string.Join(", ", kinds)}. "
-            + "Two sorts of thing are on that list — the registry and your records — so "
+            + "Two sorts of things are on that list — the registry and your records — so "
             + "there should be exactly two different words in that column.");
 
         Assert.True(lines.All(l => !string.IsNullOrWhiteSpace(l)),
