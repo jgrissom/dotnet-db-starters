@@ -5,7 +5,7 @@
 //
 //  You were told for two weeks not to touch this file. Tonight you add
 //  two lines to it and change nothing else about it, which is the whole
-//  point of Task 2: a class you finished a fortnight ago can keep a
+//  point of Task 2: a class you finished two weeks ago can keep a
 //  promise it had never heard of.
 //
 //  Look at what it ALREADY answers. IScheduleItem asks for four things
