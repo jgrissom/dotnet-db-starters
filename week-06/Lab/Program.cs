@@ -18,6 +18,7 @@
 // ⚠️ Spectre reads [square brackets] as formatting instructions, so
 //    anything a human typed goes through Markup.Escape first.
 
+using NetCoreAudio;
 using Spectre.Console;
 
 const string Violet = "#c792ea";
@@ -182,10 +183,46 @@ void TakeRequest()
 
 void AirTheHour()
 {
+    // Is there an ident in this hour? That is the same question the duty log
+    // asks about a sign-out, and it is the only way to find out — the hour
+    // holds IScheduleItems, and an IScheduleItem cannot tell you it is a
+    // StationId. Until Task 3 there isn't one, and the station stays quiet.
+    foreach (IScheduleItem item in hour.All())
+    {
+        if (item is StationId)
+        {
+            PlayIdent();
+            break;
+        }
+    }
+
     // One loop, written in Hour.cs, and it has never heard of a song.
     foreach (string line in hour.Run())
     {
         AnsiConsole.MarkupLine($"  [{Coral}]ON AIR[/]  [{Fg}]{Markup.Escape(line)}[/]");
+    }
+}
+
+// The station saying its own name out loud.
+//
+// ⚠️ The file has to be found from wherever you ran the program, and you run
+// this one from the top of your repo — so the path is worked out from where
+// the BUILT program sits, never written as "kdxr.wav" on its own.
+void PlayIdent()
+{
+    try
+    {
+        string wav = Path.Combine(AppContext.BaseDirectory, "kdxr.wav");
+
+        if (File.Exists(wav))
+        {
+            new Player().Play(wav).Wait();
+        }
+    }
+    catch
+    {
+        // No sound on this machine, no problem. Nothing here is graded, and a
+        // silent shift is still a shift.
     }
 }
 

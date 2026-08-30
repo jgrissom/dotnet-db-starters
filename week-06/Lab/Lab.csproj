@@ -11,6 +11,18 @@
        hand in week 3; from here it just ships with the starter. -->
   <ItemGroup>
     <PackageReference Include="Spectre.Console" Version="0.57.2" />
+
+    <!-- New this week, and the second package you have ever had. It plays a
+         sound file using whatever player the machine already has. -->
+    <PackageReference Include="NetCoreAudio" Version="2.0.1" />
+  </ItemGroup>
+
+  <!-- The station ident, copied next to the program when it builds so it can
+       be found from anywhere you run it. -->
+  <ItemGroup>
+    <Content Include="kdxr.wav">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
 </Project>
