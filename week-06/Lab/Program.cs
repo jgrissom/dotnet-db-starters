@@ -90,6 +90,10 @@ hour.Add(longWayRound);
 
 DrawHour();
 
+// One player for the whole shift, so a second `a` can stop the first ident
+// instead of talking over it.
+Player identPlayer = new Player();
+
 int next = 0;
 
 while (true)
@@ -216,7 +220,13 @@ void PlayIdent()
 
         if (File.Exists(wav))
         {
-            new Player().Play(wav).Wait();
+            // Already talking? Cut it off rather than stack a second one on top.
+            if (identPlayer.Playing)
+            {
+                identPlayer.Stop().Wait();
+            }
+
+            identPlayer.Play(wav).Wait();
         }
     }
     catch
