@@ -37,9 +37,12 @@ public class Hour
 
     // TODO — Task 5. Put the hour on air.
     //
-    // Walk the items. Play() each one — every kind counts that differently
-    // and this loop will never find out how. Then add one line per item to
-    // the list you hand back, in this exact shape, so the desk can print it:
+    // Make a List<string> first — this ships handing back an empty one built
+    // inside the return, and there is nowhere to put a line in that.
+    //
+    // Then walk the items. Play() each one — every kind counts that
+    // differently and this loop will never find out how — and add one line
+    // per item to your list, in this exact shape, so the desk can print it:
     //
     //     SONG - Nightjar - The Lamplighters
     //     ^^^^   ^^^^^^^^^^^^^^^^^^^^^^^^^^^
