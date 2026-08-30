@@ -29,7 +29,52 @@ public class ProjectChecks
     };
 
     [Fact]
-    public void Check1_YourRecordDoesSomething()
+    public void Check1_LastWeeksDoorsStillHold()
+    {
+        var type = StudentCode.ItemType();
+
+        var property = StudentCode.RegistryType()
+            .GetProperty("Topic", BindingFlags.Public | BindingFlags.Static);
+        var field = StudentCode.RegistryType()
+            .GetField("Topic", BindingFlags.Public | BindingFlags.Static);
+
+        Assert.True(property != null || field != null,
+            "Registry has no public static Topic any more. It was there last week — put it "
+            + "back:\n"
+            + "    public static string Topic => \"Lighthouses of the Outer Banks\";");
+
+        var topic = (property != null ? property.GetValue(null) : field!.GetValue(null)) as string;
+
+        Assert.True(!string.IsNullOrWhiteSpace(topic)
+                    && !NotATopic.Contains(topic!.Trim().ToLowerInvariant()),
+            $"Registry.Topic says \"{topic}\" — say what your project is about, in words.");
+
+        var fields = StudentCode.PublicFields(type);
+        Assert.True(fields.Length == 0,
+            $"{type.Name} has grown {fields.Length} public field(s) back: "
+            + $"{string.Join(", ", fields.Select(f => f.Name))}.\n"
+            + "A public field is a hole in the wall — anything, anywhere, can write anything "
+            + "into it. That door was shut last week and it stays shut every week after.");
+
+        // And the copy, which is now only half the story — see check 3.
+        var registry = StudentCode.NewRegistry();
+        StudentCode.Add(registry, StudentCode.NewItem(registry, "The First One"));
+        StudentCode.Add(registry, StudentCode.NewItem(registry, "The Second One"));
+
+        var handedBack = StudentCode.All(registry);
+        handedBack.Clear();
+
+        Assert.True(StudentCode.Count(registry) == 2,
+            "Somebody emptied the list All() handed them and the Registry went from 2 "
+            + $"records to {StudentCode.Count(registry)}. All() hands back a COPY of the "
+            + "list:\n"
+            + $"    public List<{type.Name}> All() {{ return new List<{type.Name}>(_items); }}\n"
+            + "⚠️ Worth knowing this week: that copies the LIST, not the records in it. The "
+            + "records are the same records — which is exactly what makes Find useful, and "
+            + "exactly what makes handing your list out dangerous.");
+    }
+    [Fact]
+    public void Check2_YourRecordDoesSomething()
     {
         var type = StudentCode.ItemType();
         var registry = StudentCode.NewRegistry();
@@ -80,7 +125,7 @@ public class ProjectChecks
     }
 
     [Fact]
-    public void Check2_TheRegistryCanFindOne()
+    public void Check3_TheRegistryCanFindOne()
     {
         var type = StudentCode.ItemType();
         var registry = StudentCode.NewRegistry();
@@ -127,7 +172,7 @@ public class ProjectChecks
     }
 
     [Fact]
-    public void Check3_AndNothingWhenThereIsnt()
+    public void Check4_AndNothingWhenThereIsnt()
     {
         var type = StudentCode.ItemType();
         var registry = StudentCode.NewRegistry();
@@ -163,7 +208,7 @@ public class ProjectChecks
     }
 
     [Fact]
-    public void Check4_AndCanTakeOneOffTheBooks()
+    public void Check5_AndCanTakeOneOffTheBooks()
     {
         var type = StudentCode.ItemType();
         var registry = StudentCode.NewRegistry();
@@ -214,49 +259,4 @@ public class ProjectChecks
             + "Clear() instead.");
     }
 
-    [Fact]
-    public void Check5_LastWeeksDoorsStillHold()
-    {
-        var type = StudentCode.ItemType();
-
-        var property = StudentCode.RegistryType()
-            .GetProperty("Topic", BindingFlags.Public | BindingFlags.Static);
-        var field = StudentCode.RegistryType()
-            .GetField("Topic", BindingFlags.Public | BindingFlags.Static);
-
-        Assert.True(property != null || field != null,
-            "Registry has no public static Topic any more. It was there last week — put it "
-            + "back:\n"
-            + "    public static string Topic => \"Lighthouses of the Outer Banks\";");
-
-        var topic = (property != null ? property.GetValue(null) : field!.GetValue(null)) as string;
-
-        Assert.True(!string.IsNullOrWhiteSpace(topic)
-                    && !NotATopic.Contains(topic!.Trim().ToLowerInvariant()),
-            $"Registry.Topic says \"{topic}\" — say what your project is about, in words.");
-
-        var fields = StudentCode.PublicFields(type);
-        Assert.True(fields.Length == 0,
-            $"{type.Name} has grown {fields.Length} public field(s) back: "
-            + $"{string.Join(", ", fields.Select(f => f.Name))}.\n"
-            + "A public field is a hole in the wall — anything, anywhere, can write anything "
-            + "into it. That door was shut last week and it stays shut every week after.");
-
-        // And the copy, which is now only half the story — see check 3.
-        var registry = StudentCode.NewRegistry();
-        StudentCode.Add(registry, StudentCode.NewItem(registry, "The First One"));
-        StudentCode.Add(registry, StudentCode.NewItem(registry, "The Second One"));
-
-        var handedBack = StudentCode.All(registry);
-        handedBack.Clear();
-
-        Assert.True(StudentCode.Count(registry) == 2,
-            "Somebody emptied the list All() handed them and the Registry went from 2 "
-            + $"records to {StudentCode.Count(registry)}. All() hands back a COPY of the "
-            + "list:\n"
-            + $"    public List<{type.Name}> All() {{ return new List<{type.Name}>(_items); }}\n"
-            + "⚠️ Worth knowing this week: that copies the LIST, not the records in it. The "
-            + "records are the same records — which is exactly what makes Find useful, and "
-            + "exactly what makes handing your list out dangerous.");
-    }
 }

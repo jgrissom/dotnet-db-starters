@@ -36,7 +36,60 @@ public class ProjectChecks
         || NotAKind.Contains(text!.Trim().ToLowerInvariant());
 
     [Fact]
-    public void Check1_YourRecordKeepsThePromise()
+    public void Check1_WeeksFourAndFiveStillHold()
+    {
+        var type = StudentCode.ItemType();
+
+        var property = StudentCode.RegistryType()
+            .GetProperty("Topic", BindingFlags.Public | BindingFlags.Static);
+        var field = StudentCode.RegistryType()
+            .GetField("Topic", BindingFlags.Public | BindingFlags.Static);
+
+        Assert.True(property != null || field != null,
+            "Registry has no public static Topic any more. It has been there since week 4 "
+            + "— put it back:\n"
+            + "    public static string Topic => \"Lighthouses of the Outer Banks\";");
+
+        var topic = (property != null ? property.GetValue(null) : field!.GetValue(null)) as string;
+
+        Assert.True(!string.IsNullOrWhiteSpace(topic)
+                    && !NotATopic.Contains(topic!.Trim().ToLowerInvariant()),
+            $"Registry.Topic says \"{topic}\" — say what your project is about, in words.");
+
+        var fields = StudentCode.PublicFields(type);
+        Assert.True(fields.Length == 0,
+            $"{type.Name} has grown {fields.Length} public field(s) back: "
+            + $"{string.Join(", ", fields.Select(f => f.Name))}.\n"
+            + "That door was shut in week 4 and it stays shut every week after.");
+
+        var registry = StudentCode.NewRegistry();
+        var first = StudentCode.NewItem(registry, "The Roundhouse");
+        StudentCode.Add(registry, first);
+        StudentCode.Add(registry, StudentCode.NewItem(registry, "Sable Point"));
+
+        var handedBack = StudentCode.All(registry);
+        handedBack.Clear();
+
+        Assert.True(StudentCode.Count(registry) == 2,
+            "Somebody emptied the list All() handed them and the Registry went from 2 "
+            + $"records to {StudentCode.Count(registry)}. All() hands back a COPY.");
+
+        Assert.True(ReferenceEquals(StudentCode.Find(registry, "The Roundhouse"), first),
+            "Registry.Find no longer hands back the record the registry is holding. That "
+            + "was week 5's check 2 and it is still the deal — Find never builds a new one.");
+
+        Assert.True(StudentCode.Find(registry, "Somewhere I Never Added") == null,
+            "Registry.Find handed something back for a name nobody has. Week 5's check 3.");
+
+        Assert.True(StudentCode.Remove(registry, "The Roundhouse")
+                    && StudentCode.Count(registry) == 1,
+            "Registry.Remove no longer takes a record off and says it did. Week 5's check 4.");
+
+        Assert.True(!StudentCode.Remove(registry, "Somewhere I Never Added"),
+            "Registry.Remove said true for a name nobody has. Week 5's check 4.");
+    }
+    [Fact]
+    public void Check2_YourRecordKeepsThePromise()
     {
         var listed = StudentCode.ListedType();
         var type = StudentCode.ItemType();
@@ -78,7 +131,7 @@ public class ProjectChecks
     }
 
     [Fact]
-    public void Check2_EachRecordWritesItsOwnLine()
+    public void Check3_EachRecordWritesItsOwnLine()
     {
         var type = StudentCode.ItemType();
         var registry = StudentCode.NewRegistry();
@@ -104,7 +157,7 @@ public class ProjectChecks
     }
 
     [Fact]
-    public void Check3_TheRegistryKeepsItToo()
+    public void Check4_TheRegistryKeepsItToo()
     {
         var registryType = StudentCode.RegistryType();
         var itemType = StudentCode.ItemType();
@@ -149,7 +202,7 @@ public class ProjectChecks
     }
 
     [Fact]
-    public void Check4_OneListHoldsThemBoth()
+    public void Check5_OneListHoldsThemBoth()
     {
         var itemType = StudentCode.ItemType();
         var registry = StudentCode.NewRegistry();
@@ -207,57 +260,4 @@ public class ProjectChecks
             + "something; that is the deal the promise makes.");
     }
 
-    [Fact]
-    public void Check5_WeeksFourAndFiveStillHold()
-    {
-        var type = StudentCode.ItemType();
-
-        var property = StudentCode.RegistryType()
-            .GetProperty("Topic", BindingFlags.Public | BindingFlags.Static);
-        var field = StudentCode.RegistryType()
-            .GetField("Topic", BindingFlags.Public | BindingFlags.Static);
-
-        Assert.True(property != null || field != null,
-            "Registry has no public static Topic any more. It has been there since week 4 "
-            + "— put it back:\n"
-            + "    public static string Topic => \"Lighthouses of the Outer Banks\";");
-
-        var topic = (property != null ? property.GetValue(null) : field!.GetValue(null)) as string;
-
-        Assert.True(!string.IsNullOrWhiteSpace(topic)
-                    && !NotATopic.Contains(topic!.Trim().ToLowerInvariant()),
-            $"Registry.Topic says \"{topic}\" — say what your project is about, in words.");
-
-        var fields = StudentCode.PublicFields(type);
-        Assert.True(fields.Length == 0,
-            $"{type.Name} has grown {fields.Length} public field(s) back: "
-            + $"{string.Join(", ", fields.Select(f => f.Name))}.\n"
-            + "That door was shut in week 4 and it stays shut every week after.");
-
-        var registry = StudentCode.NewRegistry();
-        var first = StudentCode.NewItem(registry, "The Roundhouse");
-        StudentCode.Add(registry, first);
-        StudentCode.Add(registry, StudentCode.NewItem(registry, "Sable Point"));
-
-        var handedBack = StudentCode.All(registry);
-        handedBack.Clear();
-
-        Assert.True(StudentCode.Count(registry) == 2,
-            "Somebody emptied the list All() handed them and the Registry went from 2 "
-            + $"records to {StudentCode.Count(registry)}. All() hands back a COPY.");
-
-        Assert.True(ReferenceEquals(StudentCode.Find(registry, "The Roundhouse"), first),
-            "Registry.Find no longer hands back the record the registry is holding. That "
-            + "was week 5's check 2 and it is still the deal — Find never builds a new one.");
-
-        Assert.True(StudentCode.Find(registry, "Somewhere I Never Added") == null,
-            "Registry.Find handed something back for a name nobody has. Week 5's check 3.");
-
-        Assert.True(StudentCode.Remove(registry, "The Roundhouse")
-                    && StudentCode.Count(registry) == 1,
-            "Registry.Remove no longer takes a record off and says it did. Week 5's check 4.");
-
-        Assert.True(!StudentCode.Remove(registry, "Somewhere I Never Added"),
-            "Registry.Remove said true for a name nobody has. Week 5's check 4.");
-    }
 }
