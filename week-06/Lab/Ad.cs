@@ -4,7 +4,9 @@
 //  Task 4. Pham's Bakery bought three runs tonight. A buy is a fixed
 //  number of airings, so this is the one whose Play() counts DOWN.
 //
-//  Same two steps as the ident, and the second one should be quicker.
+//  Two steps, same as the ident: keep the promise — `: IScheduleItem`
+//  after the class name — then the four members. The second step should
+//  be quicker this time.
 // ═══════════════════════════════════════════════════════════════════
 
 public class Ad
