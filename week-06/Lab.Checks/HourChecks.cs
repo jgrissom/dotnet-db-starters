@@ -179,11 +179,11 @@ public class HourChecks
             + "the words:\n"
             + "    public string Cue => Words;");
 
-        Assert.True(ident.Seconds == 8,
-            $"StationId.Seconds says {ident.Seconds} and an ident takes 8. Nothing was "
+        Assert.True(ident.Seconds == 12,
+            $"StationId.Seconds says {ident.Seconds} and an ident takes 12. Nothing was "
             + "handed in to the constructor for it, and nothing needs to be — it is worked "
             + "out rather than stored, exactly like Song.Length:\n"
-            + "    public int Seconds => 8;\n"
+            + "    public int Seconds => 12;\n"
             + "The hour never asks where the number came from. That is the promise doing "
             + "its job.");
 
@@ -278,8 +278,8 @@ public class HourChecks
         hour.Add((IScheduleItem)ad);
         hour.Add(bed);
 
-        Assert.True(hour.TotalSeconds == 8 + 227 + 30 + 45,
-            $"The hour holds an ident, a song, an ad and a weather bed — 8 + 227 + 30 + 45 "
+        Assert.True(hour.TotalSeconds == 12 + 227 + 30 + 45,
+            $"The hour holds an ident, a song, an ad and a weather bed — 12 + 227 + 30 + 45 "
             + $"seconds of radio — and TotalSeconds says {hour.TotalSeconds}. It ships "
             + "saying 0:\n"
             + "    int total = 0;\n"

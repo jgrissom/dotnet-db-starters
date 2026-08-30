@@ -2,7 +2,7 @@
 //  KDXR 88.1 "The Owl" — the legal ID.
 //
 //  Task 3. At the top of every hour this station has to say its own call
-//  letters out loud. That takes eight seconds and it is not a song.
+//  letters out loud. That takes twelve seconds and it is not a song.
 //
 //  Right now this class keeps no promise at all, which is why the hour
 //  will not hold it — the line that puts it there is commented out in
