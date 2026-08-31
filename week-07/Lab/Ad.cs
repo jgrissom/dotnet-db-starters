@@ -6,7 +6,7 @@
 //  is allowed to do, and put the line back.
 //
 //  A buy is a fixed number of airings. This is the one whose Play()
-//  counts DOWN — and a station that owes minus one spot has a bug.
+//  counts DOWN — and airing more spots than the sponsor bought is a bug.
 // ═══════════════════════════════════════════════════════════════════
 
 public class Ad : IScheduleItem

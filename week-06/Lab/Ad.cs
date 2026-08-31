@@ -33,8 +33,9 @@ public class Ad
     //   2. Those four members. Three are quick; Play() is the interesting
     //      one, because this is the kind that counts DOWN — every airing
     //      spends one run off Remaining.
-    //      ⚠️ It never goes below zero. A station that owes minus one spot
-    //      is a station with a bug, so ask before you spend.
+    //      ⚠️ It never goes below zero. Going negative would mean the
+    //      station aired more spots than the sponsor bought, so ask
+    //      before you spend.
     //
     //  Then take the `//` off the Ad line in Program.cs.
 }

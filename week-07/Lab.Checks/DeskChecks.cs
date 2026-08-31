@@ -129,7 +129,8 @@ public class DeskChecks
 
         Assert.True(((Ad)spent).Remaining == 0,
             $"A one-run buy aired three times and Remaining is now {((Ad)spent).Remaining}. "
-            + "A station that owes minus two spots has a bug — you wrote the line that "
+            + "That is three airings on a buy of one: two spots the station gave away "
+            + "that nobody paid for. You wrote the line that "
             + "stopped this in week 6, and the update took it out:\n"
             + "    if (Remaining > 0) { Remaining--; }\n"
             + "👉 Next: put the guard back in Ad.Play() — and write your own test first, "

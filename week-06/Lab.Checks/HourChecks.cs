@@ -251,7 +251,8 @@ public class HourChecks
 
         Assert.True(spent.Remaining == 0,
             $"A one-run buy aired three times and Remaining is now {spent.Remaining}. A "
-            + "station that owes minus two spots has a bug:\n"
+            + "station has aired three spots on a one-run buy — two more than\n"
+            + "anybody paid for:\n"
             + "        if (Remaining > 0) { Remaining--; }\n"
             + "The guard is the whole difference between a counter and a promise you keep.");
     }
