@@ -248,7 +248,9 @@ public class ProjectChecks
             Assert.True(Equals(expected[name], after[name]),
                 $"{verb.Name}() moved {name} to {Show(expected[name])}, and after a save and "
                 + $"a load it says {Show(after[name])}.\n"
-                + "Open the file and look: the value IS in there. A serializer writes every "
+                + $"Open the file I just wrote and look — the value IS in there:\n"
+                + $"    {path}\n"
+                + "A serializer writes every "
                 + "property it can READ and reads back only the ones it can WRITE — and "
                 + $"{name} has a private setter, so it goes out and never comes home. A "
                 + "count that resets every restart is not a count.\n"
