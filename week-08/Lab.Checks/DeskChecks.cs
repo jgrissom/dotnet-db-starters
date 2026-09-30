@@ -12,7 +12,7 @@
 //  you on last night's shift instead of on your code, and `dotnet test`
 //  does not even stand in the same folder your program does.
 //
-//  Four are red out of the box, because the desk cannot write anything
+//  Three are red out of the box, because the desk cannot write anything
 //  down yet. Check 1 is everything it already does, and it stays green.
 // ═══════════════════════════════════════════════════════════════════
 
@@ -218,46 +218,5 @@ public class DeskChecks
             "The play count survived and the title did not, which is backwards. Whatever "
             + "changed in Song.cs, the title is a plain public property and it should "
             + "still be coming back on its own.");
-    }
-
-    // ── Check 5 — Task 5: the air log remembers the last shift ─────────────
-
-    [Fact]
-    public void Check5_TheAirLogRemembersTheLastShift()
-    {
-        string path = Scratch("air-log.txt");
-
-        Assert.True(Broadcast.LastShift(path) == "",
-            $"Broadcast.LastShift() was pointed at a log that does not exist and answered "
-            + $"\"{Broadcast.LastShift(path)}\". Nobody has ever signed off on that desk, "
-            + "so the honest answer is an empty string — ask File.Exists(path) first.");
-
-        Broadcast.LogShift(path, "Dorothy signed off - 6 in the hour.");
-
-        Assert.True(File.Exists(path),
-            "Broadcast.LogShift() was handed a path and no file appeared. AppendAllText "
-            + "makes the file if it isn't there yet, which is why the air log needs no "
-            + "setting-up:\n"
-            + "    File.AppendAllText(path, line + \"\\n\");\n"
-            + "👉 Next: Broadcast.cs, the TODO under Task 5.");
-
-        Broadcast.LogShift(path, "Teodoro signed off - 9 in the hour.");
-
-        Assert.True(Broadcast.LastShift(path) == "Teodoro signed off - 9 in the hour.",
-            $"Two shifts signed off and the log's last line says "
-            + $"\"{Broadcast.LastShift(path)}\". It should be the SECOND one — the last "
-            + "line of the file, which is lines[lines.Length - 1].");
-
-        string[] all = File.ReadAllLines(path);
-
-        Assert.True(all.Length == 2,
-            $"Two shifts signed off and the air log holds {all.Length} line(s). An air log "
-            + "is added to, never rewritten — WriteAllText starts the file over every "
-            + "time and AppendAllText does not. That is the whole difference, and it is "
-            + "the difference between a log and a snapshot.");
-
-        Assert.True(all[0] == "Dorothy signed off - 6 in the hour.",
-            $"The log's FIRST line says \"{all[0]}\". The oldest line stays where it is; "
-            + "new lines go on the end.");
     }
 }

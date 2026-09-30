@@ -1,18 +1,17 @@
 // KDXR 88.1 "The Owl" — the overnight shift, night seven.
 //
-// Nothing in here is yours to change tonight. This file already calls
-// everything you are about to write — which is why running it is how you
-// see each task land. Tonight's work happens in Rotation.cs, Song.cs,
-// Broadcast.cs and Lab.Tests.
+// Three lines of this file are yours tonight: where the file goes and the
+// save at sign-off (Task 2), and the load after the three carts go in
+// (Task 3). Each spot is marked with a comment that names its task.
+// Everything else ships finished.
 //
-// Two files, and they are not the same kind of thing:
+// The carts get written to one file:
 //
 //     week-08/rotation.json  the carts, written fresh every sign-off
-//     week-08/air-log.txt    one line per shift, added to and never rewritten
 //
-// Both paths are RELATIVE, so they are worked out from wherever you were
-// standing when you ran the program. You run from the top of your repo, so
-// they land in this week's folder — which is why the week is in the name.
+// The path is RELATIVE, so it is worked out from wherever you were standing
+// when you ran the program. You run from the top of your repo, so it lands
+// in this week's folder — which is why the week is in the name.
 //
 // Run it with:   dotnet run --project week-08/Lab
 //
@@ -37,10 +36,9 @@ const string OwlTop = "{o,o}";
 const string OwlMid = "|)__)";
 const string OwlBot = "-\"-\"-";
 
-// Where the two files live. See the note at the top of this file: relative to
-// where you RAN the program, which is the top of your repo.
-const string RotationFile = "week-08/rotation.json";
-const string AirLogFile = "week-08/air-log.txt";
+// Task 2 — where the carts get written down. See the note at the top of
+// this file: relative to where you RAN the program, which is the top of your
+// repo. One line goes under this comment.
 
 AnsiConsole.Clear();
 
@@ -50,15 +48,6 @@ AnsiConsole.Write(new Panel(
       + $"[{Coral}]{OwlBot}[/]  [{Dim}]overnight desk[/]")
     .Border(BoxBorder.Rounded)
     .BorderColor(Color.FromHex(Dim)));
-AnsiConsole.WriteLine();
-
-// Who had the desk before you. On a log nobody has ever signed off, this
-// comes back empty — and the desk says so rather than inventing somebody.
-string previous = Broadcast.LastShift(AirLogFile);
-
-AnsiConsole.MarkupLine(previous.Length == 0
-    ? $"[{Dim}]Nothing on the desk. First shift on this log.[/]"
-    : $"[{Dim}]Last on this desk: {Markup.Escape(previous)}[/]");
 AnsiConsole.WriteLine();
 
 Console.Write("DJ on duty: ");
@@ -78,9 +67,9 @@ rotation.Add(nightjar);
 rotation.Add(slackWater);
 rotation.Add(longWayRound);
 
-// If last night's carts are on disk, they replace the three above — same
-// three songs, with whatever the station has already played on them.
-rotation.Load(RotationFile);
+// Task 3 — last night's carts. If they are on disk, they replace the three
+// above: same three songs, with whatever the station has already played on
+// them. One line goes under this comment.
 
 // Take the carts back OUT of the rotation rather than using the three
 // variables above, because after a Load those variables are last night's
@@ -165,11 +154,8 @@ while (true)
 AnsiConsole.MarkupLine($"[{Fg}]{Broadcast.CallSign()} - that's the shift. "
     + $"{switchboard.Count} on the switchboard, {hour.Count} in the hour.[/]");
 
-// Clocking out is when the desk writes the night down. Two files, two jobs:
-// the carts are rewritten, and the air log gets one more line.
-rotation.Save(RotationFile);
-Broadcast.LogShift(AirLogFile,
-    $"{djName} signed off - {hour.Count} in the hour, {switchboard.Count} on the switchboard.");
+// Task 2 — clocking out is when the desk writes the night down. One line
+// goes under this comment.
 
 AnsiConsole.MarkupLine($"[{Dim}]Keep it quiet out there.[/]");
 

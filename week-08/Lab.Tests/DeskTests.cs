@@ -27,19 +27,28 @@ public class DeskTests
 
     // A fact about a file. The only new thing here is the first line: a
     // scratch path, in the folder the system keeps for exactly this, so the
-    // test never touches week-08/air-log.txt.
+    // test never touches week-08/rotation.json.
     //
     // ⚠️ It has to be a path of its own for a reason you can measure:
     // `dotnet run` stands at the top of your repo and `dotnet test` stands
     // inside bin/Debug/net10.0. The same relative name means two different
     // files depending on which one you typed.
+    //
+    // This one is green before you write anything, and it stays green: a
+    // desk that has never signed off has no file, and loading nothing must
+    // leave the carts it already had alone.
     [Fact]
-    public void ADeskNobodyHasSignedOffHasNothingToSay()
+    public void AFirstNightKeepsItsCarts()
     {
-        string path = Path.Combine(Path.GetTempPath(), "kdxr-mine-nolog.txt");
+        string path = Path.Combine(Path.GetTempPath(), "kdxr-mine-nofile.json");
         File.Delete(path);
 
-        Assert.Equal("", Broadcast.LastShift(path));
+        Rotation rotation = new Rotation();
+        rotation.Add(new Song("Nightjar", "The Lamplighters", 227));
+
+        rotation.Load(path);
+
+        Assert.Equal(1, rotation.Count);
     }
 
     // TODO — Task 4: a cart aired twice, saved and loaded, still says it
