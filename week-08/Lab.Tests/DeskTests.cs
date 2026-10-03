@@ -1,5 +1,6 @@
 // ═══════════════════════════════════════════════════════════════════
-//  YOURS. This is the suite you started last week, carried forward.
+//  YOURS. A fresh test project for week 8 — your week 7 facts stay in
+//  your week-07 folder.
 //
 //  Run it with:   dotnet test week-08/Lab.Tests
 //
