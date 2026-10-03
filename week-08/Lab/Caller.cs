@@ -1,9 +1,9 @@
 // ═══════════════════════════════════════════════════════════════════
 //  KDXR 88.1 "The Owl" — somebody who rang the request line.
 //
-//  Your week 5 work, FINISHED, untouched by the update. One count per
-//  caller, a Favorite that only Asks() moves — nothing in here changes
-//  tonight.
+//  Your week 5 work, FINISHED. One count per caller, a Favorite that only
+//  Asks() moves. One line changes tonight, and your instructor makes it
+//  live in class; you copy the finished file in.
 // ═══════════════════════════════════════════════════════════════════
 
 public class Caller

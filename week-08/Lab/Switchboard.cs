@@ -1,13 +1,12 @@
 // ═══════════════════════════════════════════════════════════════════
 //  KDXR 88.1 "The Owl" — who has rung the desk tonight.
 //
-//  ANSWER KEY — week 5's Switchboard with Task 4's fix in: the update
-//  made Take hand out fresh copies, so a regular's calls landed on a
-//  ghost. Assert.Same is the test that catches it.
-//
-//  Find is untouched and it is the half to lean on: it hands back THE
-//  caller on the board, or nothing. Never a new one with the same name.
+//  Weeks 5 and 7, FINISHED, down as far as Take. The two empty methods at
+//  the bottom are your INSTRUCTOR'S, not a task: they get written live in
+//  class tonight, and you copy the finished file in. Your own Save and Load
+//  are in Rotation.cs.
 // ═══════════════════════════════════════════════════════════════════
+using System.Text.Json;
 
 public class Switchboard
 {
@@ -56,5 +55,16 @@ public class Switchboard
 
         caller.Calls();
         return caller;
+    }
+
+    // ── the switchboard, written down ──────────────────────────────────────
+    // Your instructor's. Program.cs already calls both, so the moment the
+    // finished file is copied in, the switchboard remembers the night too.
+    public void Save(string path)
+    {
+    }
+
+    public void Load(string path)
+    {
     }
 }

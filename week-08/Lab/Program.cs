@@ -36,6 +36,11 @@ const string OwlTop = "{o,o}";
 const string OwlMid = "|)__)";
 const string OwlBot = "-\"-\"-";
 
+// Where the switchboard gets written down. This one is your instructor's
+// and it ships in place: the two calls to it below do nothing until the
+// switchboard's Save and Load are written.
+string switchboardFile = "week-08/switchboard.json";
+
 // Task 2 — where the carts get written down. See the note at the top of
 // this file: relative to where you RAN the program, which is the top of your
 // repo. One line goes under this comment.
@@ -93,6 +98,10 @@ dorothy.Calls();
 dorothy.Calls();
 bex.Calls();
 teodoro.Calls();
+
+// Last night's switchboard, if it is on disk, replaces the three callers
+// above. Your instructor's line, like the path.
+switchboard.Load(switchboardFile);
 
 // The hour, as it stands at four in the morning. Four different classes are
 // in this one list. It holds them because each one keeps IScheduleItem's
@@ -153,6 +162,8 @@ while (true)
 
 AnsiConsole.MarkupLine($"[{Fg}]{Broadcast.CallSign()} - that's the shift. "
     + $"{switchboard.Count} on the switchboard, {hour.Count} in the hour.[/]");
+
+switchboard.Save(switchboardFile);
 
 // Task 2 — clocking out is when the desk writes the night down. One line
 // goes under this comment.
