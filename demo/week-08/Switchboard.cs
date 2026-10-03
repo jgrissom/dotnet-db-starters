@@ -68,8 +68,26 @@ public class Switchboard
         File.WriteAllText(path, json);
     }
 
-
     public void Load(string path)
     {
+        if (!File.Exists(path))
+        {
+            return;
+        }
+
+        List<Caller>? loaded = JsonSerializer.Deserialize<List<Caller>>(File.ReadAllText(path));
+
+        if (loaded == null)
+        {
+            return;
+        }
+
+        _callers.Clear();
+
+        foreach (Caller caller in loaded)
+        {
+            _callers.Add(caller);
+        }
     }
+
 }
