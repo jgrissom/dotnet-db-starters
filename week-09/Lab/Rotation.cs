@@ -1,12 +1,13 @@
 // ═══════════════════════════════════════════════════════════════════
 //  KDXR 88.1 "The Owl" — what's in rotation tonight.
 //
-//  Two loops in here come out tonight, and three empty methods get filled
-//  in. The loops WORK. That is the point: you are not fixing anything.
+//  This is YOUR file tonight. Everything down to Load works, and Task 1
+//  has you rewrite two pieces of it anyway: the loop in Find and the loop
+//  at the bottom of Load. The three methods under Load are empty, and
+//  they are Tasks 2, 3 and 4.
 //
-//  ⚠️ All() copies the LIST. It does not copy the songs in it — which is
-//  why the hour and the rotation hold the SAME carts, and why a play
-//  counted in one is counted in the other.
+//  Every one of tonight's answers is one line, and none of them changes
+//  the list it asks about.
 // ═══════════════════════════════════════════════════════════════════
 using System.Text.Json;
 
@@ -32,31 +33,25 @@ public class Rotation
         return new List<Song>(_songs);
     }
 
-    // TODO — Task 1. How long the whole rotation runs.
-    //
-    // Week 4's ⭐ Done early? item, and it was promised to you then: "in week 9
-    // that entire loop becomes one line." Here is the loop, working, whether
-    // you wrote it that night or not.
-    public int TotalSeconds
+    // TODO — Task 1. The cart with this title, or nothing at all. It works:
+    // the desk's [f] key calls it. Write your fact about it FIRST, then make
+    // the five lines of loop one line.
+    public Song? Find(string title)
     {
-        get
+        foreach (Song song in _songs)
         {
-            int total = 0;
-
-            foreach (Song song in _songs)
+            if (song.Title == title)
             {
-                total += song.Seconds;
+                return song;
             }
-
-            return total;
         }
+
+        return null;
     }
 
-    // ── week 8: the carts, written down ────────────────────────────────────
     // The path is handed in and never written down in here. Where a file goes
     // is a fact about the machine the program is running on, and this class
     // knows nothing about that machine.
-
     public void Save(string path)
     {
         string json = JsonSerializer.Serialize(_songs,
@@ -81,39 +76,32 @@ public class Rotation
 
         _songs.Clear();
 
-        // TODO — Task 1. Week 8's ⭐ Done early? item: "your Load walks a list
-        // to fill another list… in week 9 that becomes one line."
-        //
-        // ⚠️ The Clear() above stays. Loading is REPLACING, and without it the
-        // rotation ends the night with six carts in it.
+        // TODO — Task 1. This loop puts every loaded cart into the rotation.
+        // The list has one method that does the same job. The Clear() above
+        // it stays where it is.
         foreach (Song song in loaded)
         {
             _songs.Add(song);
         }
     }
 
-    // ── week 9: three questions the desk cannot ask yet ────────────────────
-    // All three ship handing back an empty list, which is why the night's
-    // numbers screen has blanks on it. Each one is one line.
-
-    // TODO — Task 2. Every cart longer than the number of seconds handed in.
-    // The DJ needs something long enough to cover the 4 AM news feed.
+    // TODO — Task 2. Every cart longer than the number of seconds handed in,
+    // in the rotation's own order.
     public List<Song> LongerThan(int seconds)
     {
         return new List<Song>();
     }
 
-    // TODO — Task 3. The carts that have not been out at all tonight.
-    public List<Song> NeverPlayed()
+    // TODO — Task 3. Just the titles, one per cart, in the rotation's own
+    // order.
+    public List<string> Titles()
     {
-        return new List<Song>();
+        return new List<string>();
     }
 
-    // TODO — Task 4. The n carts with the most airings, hardest-worked first.
-    //
-    // ⚠️ Whatever you do in here, the rotation itself has to come out in the
-    // order it was loaded in. Something else in this program relies on that.
-    public List<Song> TopPlayed(int n)
+    // TODO — Task 4. Every cart, in order by title. The rotation's own order
+    // must be exactly what it was before anybody asked.
+    public List<Song> ByTitle()
     {
         return new List<Song>();
     }

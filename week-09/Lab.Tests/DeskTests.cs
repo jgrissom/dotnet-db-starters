@@ -1,44 +1,47 @@
 // ═══════════════════════════════════════════════════════════════════
-//  YOURS. Started in week 7, added to every week since.
+//  YOURS. A fresh test project for week 9 — your earlier facts stay in
+//  their own week folders.
 //
-//  Three facts in it so far. One more goes in tonight, at Task 1 — and it
-//  is a different KIND of fact from the three above it. Those three
-//  caught something. This one gives you permission to change code that
-//  already works.
+//  Run it with:   dotnet test week-09/Lab.Tests
 //
-//  ⚠️ Every path here is a scratch path. `dotnet test` runs from inside
-//  Lab.Tests/bin/Debug/net10.0 and `dotnet run` runs from the top of the
-//  repo, so a plain name would mean two different files.
+//  Three facts ship written, and all three are about things that already
+//  work. Your instructor's facts live next door, in SwitchboardTests.cs.
+//
+//  Tonight you write one more, in Task 1, and you write it BEFORE you
+//  change the method it is about. Names are yours; name it after the rule
+//  it proves.
 // ═══════════════════════════════════════════════════════════════════
 
 namespace Lab.Tests;
 
 public class DeskTests
 {
-    // Week 7's worked example. Set the scene, do the thing, check the
-    // answer — except this one needs no scene at all, because CallSign is
-    // static and asks for nothing.
+    // Set the scene, do the thing, check the answer — except this one
+    // needs no scene at all, because CallSign is static and asks for nothing.
     [Fact]
     public void TheStationKnowsItsOwnName()
     {
         Assert.Equal("KDXR", Broadcast.CallSign());
     }
 
-    // Week 8. A fact about a file — the only new thing was the scratch path.
-    //
-    // ⚠️ This one is quietly load-bearing tonight: Task 1 rewrites LastShift,
-    // and the empty-file case is exactly what LastOrDefault changes. It was
-    // green before and it is green after.
+    // A desk that has never signed off has no file, and loading nothing
+    // must leave the carts it already had alone.
     [Fact]
-    public void ADeskNobodyHasSignedOffHasNothingToSay()
+    public void AFirstNightKeepsItsCarts()
     {
-        string path = Path.Combine(Path.GetTempPath(), "kdxr-mine-nolog.txt");
+        string path = Path.Combine(Path.GetTempPath(), "kdxr-mine-nofile.json");
         File.Delete(path);
 
-        Assert.Equal("", Broadcast.LastShift(path));
+        Rotation rotation = new Rotation();
+        rotation.Add(new Song("Nightjar", "The Lamplighters", 227));
+
+        rotation.Load(path);
+
+        Assert.Equal(1, rotation.Count);
     }
 
-    // Week 8. A cart aired twice, saved and loaded, still says it aired twice.
+    // A cart aired twice, saved and loaded, still says it aired twice.
+    // This is the fact that is watching Load while you rewrite its loop.
     [Fact]
     public void ACartRemembersItsPlays()
     {
@@ -62,13 +65,7 @@ public class DeskTests
         Assert.Equal(2, reopened.All()[0].PlaysTonight);
     }
 
-    // TODO — Task 1. A fact about something you are ABOUT TO REWRITE.
-    //
-    // Pin down what Switchboard.TheRegular() answers right now, while it is
-    // still the loop you have read. Two situations are worth pinning, and the
-    // second is the one a rewrite breaks — the lab says which.
-    //
-    // Then run it. It goes green immediately, which is not a mistake: it is
-    // describing code that already works. It is what makes deleting that code
-    // a safe thing to do rather than a brave one.
+    // TODO — Task 1. One fact about Rotation.Find: it hands back the cart the
+    // rotation is holding, and null for a title nobody has. Write it BEFORE
+    // you touch Find.
 }

@@ -1,8 +1,7 @@
 // ═══════════════════════════════════════════════════════════════════
 //  KDXR 88.1 "The Owl" — the overnight forecast, read over a music bed.
 //
-//  FINISHED since week 6, untouched by the update. Nothing in here
-//  changes tonight.
+//  FINISHED. Nothing in here changes tonight.
 // ═══════════════════════════════════════════════════════════════════
 
 public class WeatherBed : IScheduleItem

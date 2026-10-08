@@ -1,28 +1,23 @@
 // KDXR 88.1 "The Owl" — the overnight shift, night eight.
 //
-// Nothing in here is yours to change tonight. This file already calls
-// everything you are about to write — which is why running it is how you
-// see each task land. Tonight's work happens in Rotation.cs, Hour.cs,
-// Switchboard.cs, Broadcast.cs and Lab.Tests.
+// This file ships finished. Nothing in it is yours to write tonight: it
+// already calls every method you are about to write, and every method your
+// instructor is about to write. Where a method is still empty, the desk
+// prints a dash.
 //
-// [n] is the screen this week fills in. Four of its lines answer already;
-// the rest are blank, and each task turns one of them into an answer.
+// Two files hold the night, and both are written at sign-off:
 //
-// Two files, and they are not the same kind of thing:
-//
-//     week-09/rotation.json  the carts, written fresh every sign-off
-//     week-09/air-log.txt    one line per shift, added to and never rewritten
-//
-// Both paths are RELATIVE, so they are worked out from wherever you were
-// standing when you ran the program. You run from the top of your repo, so
-// they land in this week's folder — which is why the week is in the name.
+//     week-09/switchboard.json   the callers
+//     week-09/rotation.json      the carts
 //
 // Run it with:   dotnet run --project week-09/Lab
 //
 //     r  take a request        a  put the hour on air
 //     h  redraw the hour       c  the switchboard
 //     t  the carts, and what each one has played
-//     n  the night's numbers   q  end the shift
+//     f  find a cart by its title
+//     n  the night's numbers
+//     q  end the shift
 //
 // ⚠️ Spectre reads [square brackets] as formatting instructions, so
 //    anything a human typed goes through Markup.Escape first.
@@ -40,10 +35,11 @@ const string OwlTop = "{o,o}";
 const string OwlMid = "|)__)";
 const string OwlBot = "-\"-\"-";
 
-// Where the two files live. See the note at the top of this file: relative to
-// where you RAN the program, which is the top of your repo.
-const string RotationFile = "week-09/rotation.json";
-const string AirLogFile = "week-09/air-log.txt";
+// Where the night gets written down. Both paths are relative to where you
+// RAN the program, which is the top of your repo — so both files land in
+// this week's folder.
+string switchboardFile = "week-09/switchboard.json";
+string rotationFile = "week-09/rotation.json";
 
 AnsiConsole.Clear();
 
@@ -53,15 +49,6 @@ AnsiConsole.Write(new Panel(
       + $"[{Coral}]{OwlBot}[/]  [{Dim}]overnight desk[/]")
     .Border(BoxBorder.Rounded)
     .BorderColor(Color.FromHex(Dim)));
-AnsiConsole.WriteLine();
-
-// Who had the desk before you. On a log nobody has ever signed off, this
-// comes back empty — and the desk says so rather than inventing somebody.
-string previous = Broadcast.LastShift(AirLogFile);
-
-AnsiConsole.MarkupLine(previous.Length == 0
-    ? $"[{Dim}]Nothing on the desk. First shift on this log.[/]"
-    : $"[{Dim}]Last on this desk: {Markup.Escape(previous)}[/]");
 AnsiConsole.WriteLine();
 
 Console.Write("DJ on duty: ");
@@ -81,9 +68,9 @@ rotation.Add(nightjar);
 rotation.Add(slackWater);
 rotation.Add(longWayRound);
 
-// If last night's carts are on disk, they replace the three above — same
-// three songs, with whatever the station has already played on them.
-rotation.Load(RotationFile);
+// Last night's carts. If they are on disk, they replace the three above:
+// same three songs, with whatever the station has already played on them.
+rotation.Load(rotationFile);
 
 // Take the carts back OUT of the rotation rather than using the three
 // variables above, because after a Load those variables are last night's
@@ -91,7 +78,7 @@ rotation.Load(RotationFile);
 // rotation have to hold the same carts, or a play lands on the wrong one.
 List<Song> carts = rotation.All();
 
-// The switchboard, and the night up to now. Yours, from week 5.
+// The switchboard, and the night up to now.
 var switchboard = new Switchboard();
 
 var dorothy = new Caller("Dorothy");
@@ -107,6 +94,10 @@ dorothy.Calls();
 dorothy.Calls();
 bex.Calls();
 teodoro.Calls();
+
+// Last night's switchboard, if it is on disk, replaces the three callers
+// above.
+switchboard.Load(switchboardFile);
 
 // The hour, as it stands at four in the morning. Four different classes are
 // in this one list. It holds them because each one keeps IScheduleItem's
@@ -126,7 +117,7 @@ int next = 0;
 
 while (true)
 {
-    Console.Write("[r]equest  [h]our  [a]ir  [c] switchboard  [t] carts  [n]umbers  [q]uit: ");
+    Console.Write("[r]equest  [h]our  [a]ir  [c] switchboard  [t] carts  [f]ind  [n]umbers  [q]uit: ");
     string? key = Console.ReadLine();
 
     // q is the DJ going home; null is the line going dead. Either ends it.
@@ -157,12 +148,16 @@ while (true)
             DrawCarts();
             break;
 
+        case "f":
+            FindACart();
+            break;
+
         case "n":
-            TheNightsNumbers();
+            DrawNumbers();
             break;
 
         default:
-            AnsiConsole.MarkupLine($"[{Dim}]The desk has seven buttons. That wasn't one.[/]");
+            AnsiConsole.MarkupLine($"[{Dim}]The desk has eight buttons. That wasn't one.[/]");
             break;
     }
 
@@ -172,11 +167,9 @@ while (true)
 AnsiConsole.MarkupLine($"[{Fg}]{Broadcast.CallSign()} - that's the shift. "
     + $"{switchboard.Count} on the switchboard, {hour.Count} in the hour.[/]");
 
-// Clocking out is when the desk writes the night down. Two files, two jobs:
-// the carts are rewritten, and the air log gets one more line.
-rotation.Save(RotationFile);
-Broadcast.LogShift(AirLogFile,
-    $"{djName} signed off - {hour.Count} in the hour, {switchboard.Count} on the switchboard.");
+switchboard.Save(switchboardFile);
+
+rotation.Save(rotationFile);
 
 AnsiConsole.MarkupLine($"[{Dim}]Keep it quiet out there.[/]");
 
@@ -202,8 +195,8 @@ void TakeRequest()
 
     Song song;
 
-    // Week 2's guard, doing the job it was written for: a request line where
-    // the caller cannot name the song is not a request line.
+    // A request line where the caller cannot name the song is not a request
+    // line, so anything that is not a number in range gets whatever is next.
     if (int.TryParse((picked ?? "").Trim(), out int number)
         && number >= 1 && number <= songs.Count)
     {
@@ -265,8 +258,7 @@ void DrawHour()
     AnsiConsole.WriteLine();
 }
 
-// The carts in rotation, and what each one has been out on air. PLAYED is the
-// number this week is really about: it is the one the desk keeps for itself.
+// The carts in rotation, and what each one has been out on air.
 void DrawCarts()
 {
     AnsiConsole.Write(new Rule($"[{Violet}]the carts[/]")
@@ -321,72 +313,102 @@ void DrawSwitchboard()
     AnsiConsole.WriteLine();
 }
 
-// ── the night's numbers ────────────────────────────────────────────────────
-// Seven questions about the night, and every one of them is one line.
-//
-// Four of them were loops until tonight. Three of them could not be asked at
-// all — not because the desk lacked the data, but because nobody was going to
-// write a loop to find out which carts had not been out yet.
-void TheNightsNumbers()
+// One cart, asked for by title. Rotation.Find answers with the cart or with
+// nothing at all, and the desk has a line for each.
+void FindACart()
+{
+    Console.Write("  Title: ");
+    string title = (Console.ReadLine() ?? "").Trim();
+
+    Song? found = rotation.Find(title);
+
+    if (found == null)
+    {
+        AnsiConsole.MarkupLine($"  [{Dim}]No cart called[/] [{Fg}]\"{Markup.Escape(title)}\"[/] "
+            + $"[{Dim}]in the rotation.[/]");
+    }
+    else
+    {
+        AnsiConsole.MarkupLine($"  [{Coral}]Found:[/] [{Violet}]{Markup.Escape(found.Title)}[/] "
+            + $"[{Dim}]- {Markup.Escape(found.Artist)} ({found.Length})[/]");
+    }
+}
+
+// The night's numbers. Every line asks one of tonight's methods one question.
+// The top four and the running order are your instructor's; the middle three
+// are yours. A line shows a dash until the method behind it is written.
+void DrawNumbers()
 {
     AnsiConsole.Write(new Rule($"[{Violet}]the night's numbers[/]")
         .RuleStyle(Style.Parse(Dim))
         .LeftJustified());
 
-    // The four that were loops. Same answers as last week, one line each.
-    AnsiConsole.MarkupLine($"[{Dim}]  the rotation[/]         "
-        + $"[{Fg}]{rotation.Count} carts[/][{Dim}], {Broadcast.Clock(rotation.TotalSeconds)} on the clock[/]");
-
     AnsiConsole.MarkupLine($"[{Dim}]  the switchboard[/]      "
-        + $"[{Fg}]{switchboard.TotalCalls} calls[/][{Dim}] from {switchboard.Count} people[/]");
-
+        + $"[{Fg}]{switchboard.TotalCalls} calls from {switchboard.Count} people[/]");
+    AnsiConsole.MarkupLine($"[{Dim}]  rang more than once[/]  "
+        + CallerNames(switchboard.CalledMoreThan(1), false));
+    AnsiConsole.MarkupLine($"[{Dim}]  busiest two[/]          "
+        + CallerNames(switchboard.Busiest(2), true));
     AnsiConsole.MarkupLine($"[{Dim}]  the regular[/]          "
-        + $"[{Coral}]{Markup.Escape(switchboard.TheRegular())}[/]");
-
-    IScheduleItem? longest = hour.LongestItem();
-    AnsiConsole.MarkupLine($"[{Dim}]  longest in the hour[/]  "
-        + (longest == null
-            ? $"[{Dim}]nothing in the hour[/]"
-            : $"[{Fg}]{Markup.Escape(longest.Cue)}[/][{Dim}] ({Broadcast.Clock(longest.Seconds)})[/]"));
-
+        + Listed(new List<string> { switchboard.TheRegular() }));
     AnsiConsole.WriteLine();
 
-    // The three the desk could not ask before tonight.
-    AnsiConsole.MarkupLine($"[{Dim}]  over four minutes[/]    {Titles(rotation.LongerThan(240))}");
-    AnsiConsole.MarkupLine($"[{Dim}]  never been out[/]       {Titles(rotation.NeverPlayed())}");
-    AnsiConsole.MarkupLine($"[{Dim}]  worked hardest[/]       {Played(rotation.TopPlayed(2))}");
-
+    AnsiConsole.MarkupLine($"[{Dim}]  over four minutes[/]    "
+        + CartTitles(rotation.LongerThan(240)));
+    AnsiConsole.MarkupLine($"[{Dim}]  the titles[/]           "
+        + Listed(rotation.Titles()));
+    AnsiConsole.MarkupLine($"[{Dim}]  in order by title[/]    "
+        + CartTitles(rotation.ByTitle()));
     AnsiConsole.WriteLine();
 
-    // And the hour, read without airing it. Compare this with what [a] does.
-    AnsiConsole.MarkupLine($"[{Dim}]  coming up, not yet aired:[/]");
+    AnsiConsole.MarkupLine($"[{Dim}]  the running order:[/]");
 
     foreach (string line in hour.RunningOrder())
     {
-        AnsiConsole.MarkupLine($"[{Dim}]    {Markup.Escape(line)}[/]");
+        AnsiConsole.MarkupLine($"    [{Fg}]{Markup.Escape(line)}[/]");
     }
-
-    AnsiConsole.WriteLine();
 }
 
-// Titles, comma-separated — or an honest dash when the answer is "none".
-string Titles(List<Song> songs)
+// The three helpers below only turn a list into one line of text for the
+// screen. They are loops on purpose, so nothing in this file gives away a
+// line you are about to write.
+string Listed(List<string> words)
 {
-    if (songs.Count == 0)
+    string line = "";
+
+    foreach (string word in words)
     {
-        return $"[{Dim}]-[/]";
+        if (word.Length == 0)
+        {
+            continue;
+        }
+
+        line += (line.Length == 0 ? "" : ", ") + Markup.Escape(word);
     }
 
-    return $"[{Violet}]{Markup.Escape(string.Join(", ", songs.Select(s => s.Title)))}[/]";
+    return line.Length == 0 ? $"[{Dim}]-[/]" : $"[{Fg}]{line}[/]";
 }
 
-// The same, with each cart's airings after it.
-string Played(List<Song> songs)
+string CartTitles(List<Song> songs)
 {
-    if (songs.Count == 0)
+    List<string> words = new List<string>();
+
+    foreach (Song song in songs)
     {
-        return $"[{Dim}]-[/]";
+        words.Add(song.Title);
     }
 
-    return $"[{Violet}]{Markup.Escape(string.Join(", ", songs.Select(s => $"{s.Title} ({s.PlaysTonight})")))}[/]";
+    return Listed(words);
+}
+
+string CallerNames(List<Caller> callers, bool withCalls)
+{
+    List<string> words = new List<string>();
+
+    foreach (Caller caller in callers)
+    {
+        words.Add(withCalls ? $"{caller.Name} ({caller.CallsTonight})" : caller.Name);
+    }
+
+    return Listed(words);
 }

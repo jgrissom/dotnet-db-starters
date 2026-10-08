@@ -5,16 +5,16 @@
 //  Run them from the top of your PROJECT repo — the other window:
 //      dotnet test Project.Checks
 //
-//  FOUR checks this week.
+//  FOUR checks this week, and the task number is the check number.
 //
-//  ⭐ CHECK 1 IS DOING SOMETHING NEW, AND IT IS THE POINT OF THE WEEK. It
-//  asserts everything weeks 4 through 8 built — including the loops you
-//  are invited to rewrite tonight. It is green before you start, and its
-//  job is to still be green afterwards. That is what makes changing code
-//  that already works a safe thing to do rather than a brave one.
+//  ⭐ CHECK 1 IS THE ONE TO READ. It asserts everything weeks 4 through 8
+//  built — including Find and Load, which Task 1 has you rewrite. It is
+//  green before you start, and its job is to still be green afterwards.
+//  That is what makes changing code that already works a safe thing to
+//  do.
 //
-//  Checks 2, 3 and 4 are the three questions your registry could not
-//  answer: just the names, in order, and the ones that match.
+//  Checks 2, 3 and 4 are the three questions your registry cannot answer
+//  yet: the ones that match, just the names, and in order.
 //
 //  ⚠️ Nothing in here knows a single thing about YOUR record's property
 //  names. Sorted() is checked by REFERENCE — three records go in, and I
@@ -45,7 +45,7 @@ public class ProjectChecks
     //      Descending   Zebra, Mango, Alpha   ← sorted backwards
     //
     // Add them in sorted-adjacent order and two of those collide, which
-    // would make check 3's message name the wrong cause.
+    // would make check 4's message name the wrong cause.
     private const string Zebra = "Zebra Crossing";
     private const string Alpha = "Alpha Street";
     private const string Mango = "Mango Lane";
@@ -202,10 +202,76 @@ public class ProjectChecks
         }
     }
 
-    // ── Check 2 — just the names ───────────────────────────────────────────
+    // ── Check 2 — the ones that match ──────────────────────────────────────
 
     [Fact]
-    public void Check2_TheRegistryHandsBackItsNames()
+    public void Check2_TheRegistryFindsEveryMatch()
+    {
+        const string Sable = "Sable Point Light";
+        const string Pointe = "Pointe Aux Barques";
+        const string Round = "The Roundhouse";
+
+        var registry = StudentCode.NewRegistry();
+        StudentCode.Add(registry, StudentCode.NewItem(registry, Sable));
+        StudentCode.Add(registry, StudentCode.NewItem(registry, Pointe));
+        StudentCode.Add(registry, StudentCode.NewItem(registry, Round));
+
+        var matches = StudentCode.Matching(registry, "Point");
+
+        Assert.True(matches.Count == 2,
+            $"Registry.Matching(\"Point\") handed back {matches.Count} records and should "
+            + "hand back 2.\n"
+            + $"The three names are \"{Sable}\", \"{Pointe}\" and \"{Round}\" — two of "
+            + "those have \"Point\" somewhere inside them.\n"
+            + "    public List<Lighthouse> Matching(string term)\n"
+            + "    {\n"
+            + "        return _items.Where(item => item.Name.Contains(term)).ToList();\n"
+            + "    }\n"
+            + "Where keeps the ones the question is TRUE for and drops the rest.\n"
+            + $"👉 Next: if you got 1, it is StartsWith rather than Contains — \"{Sable}\" "
+            + "has Point in the middle of it. If you got 0, the method is still handing back "
+            + "an empty list. If you got 3, the question inside the lambda is true of "
+            + "everything.");
+
+        Assert.True(ReferenceEquals(matches[0], StudentCode.Find(registry, Sable))
+                    && ReferenceEquals(matches[1], StudentCode.Find(registry, Pointe)),
+            $"Registry.Matching(\"Point\") found two records, and they are not the two I "
+            + $"expected in the order I expected: \"{Sable}\" then \"{Pointe}\".\n"
+            + "Where does not reorder anything — it keeps what is left in the order it "
+            + "found it, and those two were added in that order.\n"
+            + "⚠️ It also hands back the RECORDS the registry is holding, never copies of "
+            + "them. That is week 5's rule, and it is what lets a caller act on what came "
+            + "back.");
+
+        Assert.True(StudentCode.Matching(registry, "Roundhouse").Count == 1,
+            "Registry.Matching(\"Roundhouse\") found "
+            + $"{StudentCode.Matching(registry, "Roundhouse").Count} records and should find "
+            + $"1 — \"{Round}\" has it on the end.");
+
+        Assert.True(StudentCode.Matching(registry, "Lighthouse of Alexandria").Count == 0,
+            "Registry.Matching() found something for a term no record contains. It found "
+            + $"{StudentCode.Matching(registry, "Lighthouse of Alexandria").Count}.\n"
+            + "A question that is true of nothing hands back an empty list — not null, and "
+            + "not an error.");
+
+        Assert.True(StudentCode.Matching(registry, "").Count == 3,
+            "Registry.Matching(\"\") found "
+            + $"{StudentCode.Matching(registry, "").Count} records out of 3. Every string "
+            + "contains the empty string, so an empty search term matches everything. That "
+            + "is not a special case you have to write — it is what Contains already does, "
+            + "and it is the sensible answer for a search box nobody has typed in yet.");
+
+        Assert.True(StudentCode.Count(registry) == 3,
+            $"Asking Matching changed the registry — it holds {StudentCode.Count(registry)} "
+            + "records now and it held 3.\n"
+            + "⚠️ A query ASKS. Where builds a new sequence, ToList() copies that into a new "
+            + "list, and _items is untouched by both.");
+    }
+
+    // ── Check 3 — just the names ───────────────────────────────────────────
+
+    [Fact]
+    public void Check3_TheRegistryHandsBackItsNames()
     {
         var registry = StudentCode.NewRegistry();
         StudentCode.Add(registry, StudentCode.NewItem(registry, Mango));
@@ -234,7 +300,7 @@ public class ProjectChecks
             + "the name — Select takes ONE property off each record, not the record's whole "
             + "line — or it has put them in order, and Names() is not the method that "
             + "does that. It hands them back in the registry's own order, which is the "
-            + "order they were added in. Sorting is check 3's job.");
+            + "order they were added in. Sorting is check 4's job.");
 
         var empty = StudentCode.NewRegistry();
         Assert.True(StudentCode.Names(empty).Count == 0,
@@ -243,10 +309,10 @@ public class ProjectChecks
             + "and Select over nothing is an empty list rather than null or an error.");
     }
 
-    // ── Check 3 — in order ─────────────────────────────────────────────────
+    // ── Check 4 — in order ─────────────────────────────────────────────────
 
     [Fact]
-    public void Check3_TheRegistryComesBackInOrder()
+    public void Check4_TheRegistryComesBackInOrder()
     {
         var registry = StudentCode.NewRegistry();
         StudentCode.Add(registry, StudentCode.NewItem(registry, Mango));
@@ -323,72 +389,6 @@ public class ProjectChecks
             "Registry.Sorted() on an empty registry handed back "
             + $"{StudentCode.Sorted(empty).Count} record(s). Sorting nothing gives you an "
             + "empty list, not null and not an error.");
-    }
-
-    // ── Check 4 — the ones that match ──────────────────────────────────────
-
-    [Fact]
-    public void Check4_TheRegistryFindsEveryMatch()
-    {
-        const string Sable = "Sable Point Light";
-        const string Pointe = "Pointe Aux Barques";
-        const string Round = "The Roundhouse";
-
-        var registry = StudentCode.NewRegistry();
-        StudentCode.Add(registry, StudentCode.NewItem(registry, Sable));
-        StudentCode.Add(registry, StudentCode.NewItem(registry, Pointe));
-        StudentCode.Add(registry, StudentCode.NewItem(registry, Round));
-
-        var matches = StudentCode.Matching(registry, "Point");
-
-        Assert.True(matches.Count == 2,
-            $"Registry.Matching(\"Point\") handed back {matches.Count} records and should "
-            + "hand back 2.\n"
-            + $"The three names are \"{Sable}\", \"{Pointe}\" and \"{Round}\" — two of "
-            + "those have \"Point\" somewhere inside them.\n"
-            + "    public List<Lighthouse> Matching(string term)\n"
-            + "    {\n"
-            + "        return _items.Where(item => item.Name.Contains(term)).ToList();\n"
-            + "    }\n"
-            + "Where keeps the ones the question is TRUE for and drops the rest.\n"
-            + $"👉 Next: if you got 1, it is StartsWith rather than Contains — \"{Sable}\" "
-            + "has Point in the middle of it. If you got 0, the method is still handing back "
-            + "an empty list. If you got 3, the question inside the lambda is true of "
-            + "everything.");
-
-        Assert.True(ReferenceEquals(matches[0], StudentCode.Find(registry, Sable))
-                    && ReferenceEquals(matches[1], StudentCode.Find(registry, Pointe)),
-            $"Registry.Matching(\"Point\") found two records, and they are not the two I "
-            + $"expected in the order I expected: \"{Sable}\" then \"{Pointe}\".\n"
-            + "Where does not reorder anything — it keeps what is left in the order it "
-            + "found it, and those two were added in that order.\n"
-            + "⚠️ It also hands back the RECORDS the registry is holding, never copies of "
-            + "them. That is week 5's rule, and it is what lets a caller act on what came "
-            + "back.");
-
-        Assert.True(StudentCode.Matching(registry, "Roundhouse").Count == 1,
-            "Registry.Matching(\"Roundhouse\") found "
-            + $"{StudentCode.Matching(registry, "Roundhouse").Count} records and should find "
-            + $"1 — \"{Round}\" has it on the end.");
-
-        Assert.True(StudentCode.Matching(registry, "Lighthouse of Alexandria").Count == 0,
-            "Registry.Matching() found something for a term no record contains. It found "
-            + $"{StudentCode.Matching(registry, "Lighthouse of Alexandria").Count}.\n"
-            + "A question that is true of nothing hands back an empty list — not null, and "
-            + "not an error.");
-
-        Assert.True(StudentCode.Matching(registry, "").Count == 3,
-            "Registry.Matching(\"\") found "
-            + $"{StudentCode.Matching(registry, "").Count} records out of 3. Every string "
-            + "contains the empty string, so an empty search term matches everything. That "
-            + "is not a special case you have to write — it is what Contains already does, "
-            + "and it is the sensible answer for a search box nobody has typed in yet.");
-
-        Assert.True(StudentCode.Count(registry) == 3,
-            $"Asking Matching changed the registry — it holds {StudentCode.Count(registry)} "
-            + "records now and it held 3.\n"
-            + "⚠️ A query ASKS. Where builds a new sequence, ToList() copies that into a new "
-            + "list, and _items is untouched by both.");
     }
 
     private static string Show(object? value) =>

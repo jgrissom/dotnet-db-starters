@@ -1,12 +1,11 @@
 // ═══════════════════════════════════════════════════════════════════
 //  KDXR 88.1 "The Owl" — a spot somebody paid for.
 //
-//  ANSWER KEY — week 6's Ad with Task 3's fix in: the update deleted
-//  the guard in Play(), and a one-run buy aired three times went to -2.
-//  The student's test proves it red first; the guard turns it green.
+//  FINISHED. Nothing in here changes tonight.
 //
 //  A buy is a fixed number of airings. This is the one whose Play()
-//  counts DOWN — and airing more spots than the sponsor bought is a bug.
+//  counts DOWN — which makes it the item to watch when something airs
+//  that should only have been read.
 // ═══════════════════════════════════════════════════════════════════
 
 public class Ad : IScheduleItem
@@ -31,8 +30,8 @@ public class Ad : IScheduleItem
         Remaining = runs;
     }
 
-    // Task 3's fix: the guard is back. Every airing that has a run to
-    // spend, spends one — and the station never airs a spot nobody bought.
+    // Every airing that has a run to spend, spends one — and the station
+    // never airs a spot nobody bought.
     public void Play()
     {
         if (Remaining > 0)

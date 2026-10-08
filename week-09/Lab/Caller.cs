@@ -1,10 +1,11 @@
 // ═══════════════════════════════════════════════════════════════════
 //  KDXR 88.1 "The Owl" — somebody who rang the request line.
 //
-//  Your week 5 work, FINISHED, untouched by the update. One count per
-//  caller, a Favorite that only Asks() moves — nothing in here changes
-//  tonight.
+//  FINISHED. Nothing in here changes tonight. One count per caller, and
+//  a Favorite that only Asks() moves.
 // ═══════════════════════════════════════════════════════════════════
+
+using System.Text.Json.Serialization;
 
 public class Caller
 {
@@ -13,6 +14,7 @@ public class Caller
 
     // One per caller, because every caller is a separate object. Read it
     // anywhere; write it nowhere except inside this class.
+    [JsonInclude]
     public int CallsTonight { get; private set; }
 
     // The only thing in the program that moves that number.
@@ -24,6 +26,7 @@ public class Caller
     // Song? — a caller who has just rung has not asked for
     // anything yet, and null is the honest answer rather than a made-up
     // song. Asks() is the only way it moves.
+    [JsonInclude]
     public Song? Favorite { get; private set; }
 
     // Keep the song we were handed — the actual cart in the
@@ -31,7 +34,7 @@ public class Caller
     //
     // ⚠️ The call is NOT counted here. Switchboard.Take counted it when it
     // put them on the line, and counting again would put Dorothy up by two
-    // every time she asked for something. Check 5 asserts that it doesn't.
+    // every time she asked for something.
     public void Asks(Song song)
     {
         Favorite = song;

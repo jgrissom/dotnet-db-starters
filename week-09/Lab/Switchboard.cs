@@ -1,16 +1,15 @@
 // ═══════════════════════════════════════════════════════════════════
 //  KDXR 88.1 "The Owl" — who has rung the desk tonight.
 //
-//  Two working loops come out tonight.
+//  This file is your INSTRUCTOR'S, not a task. It gets rewritten live in
+//  class, a piece at a time, and you copy the finished file in at the
+//  start of each task. Read it as you work: every change made here is the
+//  one you are about to make in Rotation.cs.
 //
-//  ⭐ TheRegular is the one to look at first. You wrote this method in
-//  WEEK 3, over a Dictionary<string, int> — two variables before the loop
-//  and one comparison inside it. Same question, different list. Week 3
-//  said: "in week 9 this whole loop becomes one line."
-//
-//  Find is untouched and it is the half to lean on: it hands back THE
-//  caller on the board, or nothing. Never a new one with the same name.
+//  The four methods at the bottom are empty until then, and the desk's
+//  [n] screen shows a dash where each answer will go.
 // ═══════════════════════════════════════════════════════════════════
+using System.Text.Json;
 
 public class Switchboard
 {
@@ -42,11 +41,9 @@ public class Switchboard
         return null;
     }
 
-    // One door for "a call came in".
-    //
-    // Take hands back THE caller on the board, and only news one up when Find
-    // comes back empty. Both roads end in the same place: the call is counted
-    // on whoever is handed back.
+    // One door for "a call came in". Take hands back THE caller on the
+    // board, and only makes a new one when Find comes back empty. Both roads
+    // end in the same place: the call is counted on whoever is handed back.
     public Caller Take(string name)
     {
         Caller? caller = Find(name);
@@ -61,49 +58,60 @@ public class Switchboard
         return caller;
     }
 
-    // ── two loops, and tonight they are one line each ──────────────────────
-
-    // TODO — Task 1. Every call the desk has taken tonight, added up.
-    //
-    // Week 5's ⭐ Done early? item: "a TotalCalls that loops every caller
-    // adding up their count… in week 9 that entire loop becomes one line."
-    public int TotalCalls
+    public void Save(string path)
     {
-        get
+        string json = JsonSerializer.Serialize(_callers,
+            new JsonSerializerOptions { WriteIndented = true });
+
+        File.WriteAllText(path, json);
+    }
+
+    public void Load(string path)
+    {
+        if (!File.Exists(path))
         {
-            int total = 0;
+            return;
+        }
 
-            foreach (Caller caller in _callers)
-            {
-                total += caller.CallsTonight;
-            }
+        List<Caller>? loaded = JsonSerializer.Deserialize<List<Caller>>(File.ReadAllText(path));
 
-            return total;
+        if (loaded == null)
+        {
+            return;
+        }
+
+        _callers.Clear();
+
+        foreach (Caller caller in loaded)
+        {
+            _callers.Add(caller);
         }
     }
 
-    // TODO — Task 1. Who would not stop calling.
-    //
-    // Week 3's, moved onto the list of callers you have had since week 5. Two
-    // variables before the loop, one comparison inside it.
-    //
-    // ⚠️ "nobody yet" is not decoration. A board nobody has rung has no
-    // busiest caller, and this method has answered that with those exact two
-    // words since week 3. Whatever replaces the loop still has to say them.
+    // ── the night's numbers ────────────────────────────────────────────────
+    // Your instructor writes each of these live in class.
+
+    // Every call the desk has taken tonight, added up.
+    public int TotalCalls
+    {
+        get { return 0; }
+    }
+
+    // The callers who have rung more than this many times.
+    public List<Caller> CalledMoreThan(int calls)
+    {
+        return new List<Caller>();
+    }
+
+    // The n callers who have rung most, busiest first.
+    public List<Caller> Busiest(int n)
+    {
+        return new List<Caller>();
+    }
+
+    // The name of whoever has rung most.
     public string TheRegular()
     {
-        string best = "nobody yet";
-        int most = 0;
-
-        foreach (Caller caller in _callers)
-        {
-            if (caller.CallsTonight > most)
-            {
-                most = caller.CallsTonight;
-                best = caller.Name;
-            }
-        }
-
-        return best;
+        return "";
     }
 }
