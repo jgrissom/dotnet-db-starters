@@ -95,12 +95,12 @@ public class Switchboard
     // The n callers who have rung most, busiest first.
     public List<Caller> Busiest(int n)
     {
-        return new List<Caller>();
+        return _callers.OrderByDescending(caller => caller.CallsTonight).Take(n).ToList();
     }
 
     // The name of whoever has rung most.
     public string TheRegular()
     {
-        return "";
+        return _callers.MaxBy(caller => caller.CallsTonight)?.Name ?? "nobody yet";
     }
 }
