@@ -56,6 +56,6 @@ public class Hour
     // to the hour. Your instructor writes this one live in class.
     public List<string> RunningOrder()
     {
-        return new List<string>();
+        return _items.Select(item => $"{item.Kind} - {item.Cue}").ToList();
     }
 }
