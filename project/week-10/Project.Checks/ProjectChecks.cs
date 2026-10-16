@@ -5,12 +5,12 @@
 //  Run them from the top of your PROJECT repo — the other window:
 //      dotnet test Project.Checks
 //
-//  FOUR checks this week.
+//  FIVE checks this week.
 //
 //  CHECK 1 is everything weeks 4 through 9 built, and it is green before
-//  you start. Checks 2, 3 and 4 are this week's: a record shaped for a
-//  table, a migration, and the registry surviving a restart in its new
-//  home.
+//  you start. Checks 2 to 5 are this week's: a record shaped for a table,
+//  a migration, the registry surviving a restart in its new home, and a
+//  second save that changes the rows it already has.
 //
 //  ⚠️ ⚠️ NOT ONE OF THESE CHECKS TOUCHES A DATABASE. Every one of them
 //  hands your context somewhere else to keep its rows — a table that
@@ -281,9 +281,8 @@ public class ProjectChecks
                   + "Add and AddRange only write down what you INTEND to do — or Load is "
                   + "not asking the DbSet for what is in it.\n"
                 : "")
-            + "👉 Next: read Save and Load side by side. Save: take out what is there, put "
-            + "yours in, SaveChanges(). Load: read the rows, and replace what the registry "
-            + "is holding.");
+            + "👉 Next: read Save and Load side by side. Save: Add each record, then "
+            + "SaveChanges(). Load: read the rows into a list, then Clear() and AddRange.");
 
         foreach (var name in new[] { Zebra, Alpha, Mango })
         {
@@ -326,8 +325,7 @@ public class ProjectChecks
             + "seeds records and THEN calls Load. On a table nobody has saved to yet, a "
             + "Load that clears first throws your seeds away.\n"
             + "⚠️ Week 8 had this too — it is what File.Exists at the top of Load was for. "
-            + "The table is always there; on the first run it is empty, which is the same "
-            + "situation wearing different clothes.\n"
+            + "The table is always there, but on the first run it is empty.\n"
             + "👉 Next: read the rows into a list FIRST, and return early when there are "
             + "none of them.");
 
@@ -340,6 +338,83 @@ public class ProjectChecks
         Assert.True(StudentCode.Count(reopened) == 3,
             $"Loaded twice and the registry holds {StudentCode.Count(reopened)} records.\n"
             + "⚠️ Loading is REPLACING. _items.Clear() before the AddRange.");
+    }
+
+    // ── Check 5 — the second save changes the rows it already has ─────────
+
+    [Fact]
+    public void Check5_ASecondSaveChangesTheRow()
+    {
+        var somewhere = StudentCode.SomewhereElse("second-save");
+
+        var first = StudentCode.NewRegistry();
+        StudentCode.Add(first, StudentCode.NewItem(first, Mango));
+        StudentCode.Add(first, StudentCode.NewItem(first, Zebra));
+
+        using (var db = StudentCode.NewContext(somewhere))
+        {
+            StudentCode.Save(first, db);
+        }
+
+        // The next run: one context, read at the start and written at the end,
+        // the way a Program.cs does it.
+        var nextRun = StudentCode.NewRegistry();
+        string[] moved = Array.Empty<string>();
+        Dictionary<string, object?> expected = new();
+        MethodInfo? verb = null;
+
+        using (var db = StudentCode.NewContext(somewhere))
+        {
+            StudentCode.Load(nextRun, db);
+
+            var record = StudentCode.Find(nextRun, Zebra);
+            Assert.True(record != null,
+                "Two records were saved and Find cannot see one of them after a Load. "
+                + "Check 4 covers this — make it green first.");
+
+            verb = StudentCode.TheVerb(nextRun);
+            if (verb != null)
+            {
+                moved = StudentCode.WhatItMoves(record!, verb);
+                expected = StudentCode.Snapshot(record!);
+            }
+
+            StudentCode.Save(nextRun, db);
+        }
+
+        var reopened = StudentCode.NewRegistry();
+
+        using (var db = StudentCode.NewContext(somewhere))
+        {
+            StudentCode.Load(reopened, db);
+        }
+
+        Assert.True(StudentCode.Count(reopened) == 2,
+            $"Two records were saved, loaded and saved again, and {StudentCode.Count(reopened)} "
+            + "came back.\n"
+            + "⚠️ A record that came out of the table already has a row. Saving it again "
+            + "has to CHANGE that row, not add a second one:\n"
+            + "    if (item.Id == 0)\n"
+            + "    {\n"
+            + "        db.YourRecords.Add(item);\n"
+            + "    }\n"
+            + "    else\n"
+            + "    {\n"
+            + "        db.YourRecords.Update(item);\n"
+            + "    }");
+
+        if (moved.Length > 0)
+        {
+            var after = StudentCode.Snapshot(StudentCode.Find(reopened, Zebra)!);
+
+            foreach (var name in moved)
+            {
+                Assert.True(Equals(expected[name], after[name]),
+                    $"{verb!.Name}() moved {name} to {Show(expected[name])} on the second run, "
+                    + $"and after saving it came back as {Show(after[name])}. The second save "
+                    + "has to change the row the table already has.");
+            }
+        }
     }
 
     private static string Show(object? value) =>

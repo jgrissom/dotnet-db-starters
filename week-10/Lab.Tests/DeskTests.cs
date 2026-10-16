@@ -1,67 +1,53 @@
 // ═══════════════════════════════════════════════════════════════════
-//  ANSWER KEY — the student's own test file, week 10.
+//  YOURS. A fresh test project for week 10 — your earlier facts stay in
+//  their own week folders.
 //
-//  Three facts ship written in the starter (weeks 7 and 8). The fourth is
-//  Task 1's, and the name is the student's to choose. This is one honest
-//  set. Nothing anywhere asserts on these names.
+//  Run it with:   dotnet test week-10/Lab.Tests
 //
-//  ⭐ Task 1's fact is the one this week is about, and it is the FIRST
-//  test in this course that is green before the work and green after it.
-//  It was watched green against the shipped hand-written TheRegular, then
-//  watched green again against the one-liner. That is the whole of week
-//  7's promise: a suite is permission to rewrite.
-//
-//  ⚠️ Every path here is a scratch path. `dotnet test` runs from inside
-//  Lab.Tests/bin/Debug/net10.0 and `dotnet run` runs from the top of the
-//  repo, so a plain name would mean two different files.
+//  Four facts ship written. Two of them use a file, and in Task 4 they
+//  stop compiling, because Save and Load stop taking a path. You move both
+//  onto a table that lives inside the test run. In Task 5 you write one
+//  more, BEFORE you change the method it is about.
 // ═══════════════════════════════════════════════════════════════════
-
-using Microsoft.EntityFrameworkCore;
 
 namespace Lab.Tests;
 
 public class DeskTests
 {
-    // Week 7's worked example. Set the scene, do the thing, check the
-    // answer — except this one needs no scene at all, because CallSign is
-    // static and asks for nothing.
+    // Set the scene, do the thing, check the answer — except this one
+    // needs no scene at all, because CallSign is static and asks for nothing.
     [Fact]
     public void TheStationKnowsItsOwnName()
     {
         Assert.Equal("KDXR", Broadcast.CallSign());
     }
 
-    // Week 8. A fact about a file — the only new thing was the scratch path.
+    // TODO — Task 4: a table nobody has saved to yet, instead of a missing file.
     //
-    // ⚠️ This one is quietly load-bearing tonight: Task 1 rewrites LastShift,
-    // and the empty-file case is exactly what LastOrDefault changes. It was
-    // green before and it is green after.
+    // A desk that has never signed off has no file, and loading nothing
+    // must leave the carts it already had alone.
     [Fact]
-    public void ADeskNobodyHasSignedOffHasNothingToSay()
+    public void AFirstNightKeepsItsCarts()
     {
-        string path = Path.Combine(Path.GetTempPath(), "kdxr-mine-nolog.txt");
+        string path = Path.Combine(Path.GetTempPath(), "kdxr-mine-nofile.json");
         File.Delete(path);
 
-        Assert.Equal("", Broadcast.LastShift(path));
+        Rotation rotation = new Rotation();
+        rotation.Add(new Song("Nightjar", "The Lamplighters", 227));
+
+        rotation.Load(path);
+
+        Assert.Equal(1, rotation.Count);
     }
 
-    // Week 8, and week 10 moved it. The fact has not changed a word: a cart
-    // aired twice, saved and loaded, still says it aired twice. Where it is
-    // kept changed.
+    // TODO — Task 4: a table that lives inside the test run, instead of a file.
     //
-    // ⚠️ THIS TEST NEVER TOUCHES THE COLLEGE'S SERVER, and that is the point
-    // of it. It hands the context somewhere else to put the rows — a table
-    // that lives in this test run and nowhere else. So the suite needs no
-    // database, no password and no network, and it answers in milliseconds.
+    // A cart aired twice, saved and loaded, still says it aired twice.
     [Fact]
     public void ACartRemembersItsPlays()
     {
-        // Somewhere of its own, named after this run, so two tests going at
-        // the same time can never see each other's carts.
-        DbContextOptions<DeskContext> somewhereElse =
-            new DbContextOptionsBuilder<DeskContext>()
-                .UseInMemoryDatabase("kdxr-" + Guid.NewGuid())
-                .Options;
+        string path = Path.Combine(Path.GetTempPath(), "kdxr-mine-rotation.json");
+        File.Delete(path);
 
         Song nightjar = new Song("Nightjar", "The Lamplighters", 227);
         nightjar.Play();
@@ -69,46 +55,28 @@ public class DeskTests
 
         Rotation rotation = new Rotation();
         rotation.Add(nightjar);
+        rotation.Save(path);
 
-        using (DeskContext db = new DeskContext(somewhereElse))
-        {
-            rotation.Save(db);
-        }
-
-        // A second rotation, holding nothing, and a second context — reading
-        // the same carts. Loading into the one that just saved would prove
-        // nothing.
+        // A second rotation, holding nothing, reading the same file. Loading
+        // into the one that just saved would prove nothing.
         Rotation reopened = new Rotation();
-
-        using (DeskContext db = new DeskContext(somewhereElse))
-        {
-            reopened.Load(db);
-        }
+        reopened.Load(path);
 
         Assert.Equal(1, reopened.Count);
         Assert.Equal(2, reopened.All()[0].PlaysTonight);
     }
 
-    // Week 9, Task 1. Written BEFORE the seven loops came out, and it is why
-    // they were allowed to.
-    //
-    // Two situations, because the second one is the one a rewrite breaks: a
-    // board nobody has rung has no busiest caller, and the answer to that has
-    // been the string "nobody yet" since week 3.
+    // Week 9. Written before Find was rewritten, to prove nothing moved.
     [Fact]
-    public void TheRegularIsWhoeverRangMost()
+    public void FindHandsBackTheCartOrNothing()
     {
-        Switchboard quiet = new Switchboard();
+        Rotation rotation = new Rotation();
+        Song nightjar = new Song("Nightjar", "The Lamplighters", 227);
+        rotation.Add(nightjar);
 
-        Assert.Equal("nobody yet", quiet.TheRegular());
-        Assert.Equal(0, quiet.TotalCalls);
-
-        Switchboard board = new Switchboard();
-        board.Take("Dorothy");
-        board.Take("Bex");
-        board.Take("Dorothy");
-
-        Assert.Equal("Dorothy", board.TheRegular());
-        Assert.Equal(3, board.TotalCalls);
+        Assert.Same(nightjar, rotation.Find("Nightjar"));
+        Assert.Null(rotation.Find("Owl Hours"));
     }
+
+    // TODO — Task 5: your fact about the second save, written before the fix.
 }

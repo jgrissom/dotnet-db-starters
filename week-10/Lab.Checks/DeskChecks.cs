@@ -6,46 +6,35 @@
 //  open:
 //      dotnet test week-10/Lab.Checks
 //
-//  CHECK 1 is the came-forward check: everything the desk has done since
-//  week 4, including every answer week 9's queries give. It is green
-//  before you start and its job is to still be green at the end.
+//  CHECK 1 is everything the desk already does. It is green before you
+//  start, and its job is to still be green at the end.
 //
-//  Checks 2 to 5 are tonight's: a cart shaped for a table, a migration, and
-//  the rotation going into the database and coming back out of it.
+//  Checks 2 to 5 are tonight's: a cart shaped for a table, a migration,
+//  the carts going into the table and coming back out, and a second save
+//  that changes the rows it already has.
 //
-//  ⚠️ ⚠️ NOT ONE OF THESE CHECKS TOUCHES THE COLLEGE'S SERVER. They hand
-//  the context somewhere else to keep the rows — a table that lives in the
-//  test run and nowhere else. So they need no password, no network and no
-//  database, they answer in milliseconds, and they say nothing at all about
-//  whether YOUR connection string is right. Running the desk is what tells
-//  you that.
+//  ⚠️ NOT ONE OF THESE CHECKS TOUCHES THE COLLEGE'S SERVER. They hand your
+//  DeskContext a table that lives inside the test run and nowhere else. So
+//  they need no password and no network, and they say nothing about whether
+//  YOUR connection string is right. Running the desk is what tells you that.
 //
-//  ⚠️ Nothing in here greps output. Every assert is on a value or an
-//  object's state — which is why you can print whatever you like.
+//  ⚠️ They find DeskContext, Save and Load BY NAME, because none of them
+//  exists in the starter — that is what lets this project build before you
+//  have written them. It is also why the names are dictated.
 //
-//  ⚠️ Every value is fetched through Ask() below, because two of tonight's
-//  likely rewrites THROW where the loop simply answered. A stack trace is
-//  not a hint.
+//  ⚠️ Nothing in here reads what the desk prints. Every assert is on a
+//  value or on an object's state.
 // ═══════════════════════════════════════════════════════════════════
 
+using System.Reflection;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace Lab.Checks;
 
 public class DeskChecks
 {
-    // A scratch file of this check's own, in the folder the operating system
-    // keeps for exactly this. Deleted first, so a previous run cannot pass a
-    // check for you.
-    private static string Scratch(string name)
-    {
-        string path = Path.Combine(Path.GetTempPath(), $"kdxr-check-{name}");
-        File.Delete(path);
-        return path;
-    }
-
-    // Call one of tonight's methods and turn a crash into something you can
-    // read. Both of the traps below are ordinary first attempts, not blunders.
+    // Call something and turn a crash into something you can read.
     private static T Ask<T>(string what, Func<T> question)
     {
         try
@@ -54,28 +43,15 @@ public class DeskChecks
         }
         catch (Exception e)
         {
+            Exception inner = e is TargetInvocationException && e.InnerException != null ? e.InnerException : e;
             throw new Xunit.Sdk.XunitException(
-                $"{what} threw {e.GetType().Name} instead of answering:\n"
-                + $"    {e.Message}\n"
-                + "⚠️ Two rewrites throw where the loop you replaced did not:\n"
-                + "  • First(), Last() and Single() OBJECT to an empty sequence. The\n"
-                + "    ...OrDefault versions hand back null instead — which is what your\n"
-                + "    loop did when it walked a list and found nothing.\n"
-                + "  • MaxBy and MinBy hand back NULL for an empty list, so asking their\n"
-                + "    answer for a .Name or a .Seconds straight off dies right here.\n"
-                + "    Put a ?. in front of it, and say with ?? what to answer instead.\n"
-                + "👉 Next: run the program and try the same thing by hand — the desk with "
-                + "an empty hour, or a switchboard nobody has rung.");
+                $"{what} threw {inner.GetType().Name} instead of answering:\n"
+                + $"    {inner.Message}\n"
+                + "⚠️ First(), Last() and Single() OBJECT when there is nothing to hand "
+                + "back. The ...OrDefault versions hand back null instead.\n"
+                + "👉 Next: run the desk and try the same thing by hand.");
         }
     }
-
-    // Somewhere to keep rows that is not the college's server: a table named
-    // after this call and living only inside this test run. Every check below
-    // that needs a database gets one of these.
-    private static DbContextOptions<DeskContext> SomewhereElse(string name) =>
-        new DbContextOptionsBuilder<DeskContext>()
-            .UseInMemoryDatabase($"kdxr-check-{name}-{Guid.NewGuid()}")
-            .Options;
 
     // Three carts, the same three as the desk, in a rotation of their own.
     private static Rotation ThreeCarts()
@@ -90,13 +66,96 @@ public class DeskChecks
     private static string Titles(List<Song> songs) =>
         songs.Count == 0 ? "(nothing)" : string.Join(", ", songs.Select(s => s.Title));
 
-    // ── Check 1 — everything the desk already did, and still has to ────────
+    // ── finding tonight's code, by name ─────────────────────────────────────
+
+    private const string ContextHint =
+        "    public class DeskContext : DbContext\n"
+        + "    {\n"
+        + "        public DbSet<Caller> Callers { get; set; }\n"
+        + "        public DbSet<Song> Carts { get; set; }\n"
+        + "        public DeskContext() { }\n"
+        + "        public DeskContext(DbContextOptions<DeskContext> options) : base(options) { }\n"
+        + "        protected override void OnConfiguring(DbContextOptionsBuilder options) { ... }\n"
+        + "    }\n";
+
+    private static Type Context()
+    {
+        Type? type = typeof(Rotation).Assembly.GetType("DeskContext");
+
+        Assert.True(type != null,
+            "There is no class called DeskContext in your Lab project yet.\n"
+            + "⚠️ That is Task 2: a new file, Lab/DeskContext.cs, holding the desk's "
+            + "database. The name is dictated, because your instructor's Switchboard.cs "
+            + "and these checks both reach it by name:\n"
+            + ContextHint
+            + "👉 Next: make Lab/DeskContext.cs. Task 2 in the lab README has the syntax.");
+
+        Assert.True(typeof(DbContext).IsAssignableFrom(type),
+            "DeskContext exists, but it isn't a DbContext. The class line needs the "
+            + "colon and the base class:\n"
+            + "    public class DeskContext : DbContext");
+
+        return type!;
+    }
+
+    // A context pointed at a table that lives in this test run and nowhere else.
+    private static DbContext Somewhere(string name)
+    {
+        Type type = Context();
+
+        ConstructorInfo? withOptions = type.GetConstructors()
+            .FirstOrDefault(c => c.GetParameters().Length == 1
+                && c.GetParameters()[0].ParameterType == typeof(DbContextOptions<>).MakeGenericType(type));
+
+        Assert.True(withOptions != null,
+            "DeskContext has no constructor that takes DbContextOptions<DeskContext>, so "
+            + "nothing can hand it a table to use for a test — including these checks.\n"
+            + "    public DeskContext(DbContextOptions<DeskContext> options)\n"
+            + "        : base(options)\n"
+            + "    {\n"
+            + "    }\n"
+            + "⚠️ Keep the empty constructor as well. `dotnet ef` and the desk use that one.");
+
+        var builder = (DbContextOptionsBuilder)Activator.CreateInstance(
+            typeof(DbContextOptionsBuilder<>).MakeGenericType(type))!;
+        builder.UseInMemoryDatabase(name);
+
+        return (DbContext)withOptions!.Invoke(new object[] { builder.Options });
+    }
+
+    private static string Fresh(string what) => $"kdxr-check-{what}-{Guid.NewGuid()}";
+
+    private static MethodInfo RotationMethod(string name)
+    {
+        Type type = Context();
+        MethodInfo? method = typeof(Rotation).GetMethod(name, new[] { type });
+
+        MethodInfo? old = typeof(Rotation).GetMethod(name, new[] { typeof(string) });
+
+        Assert.True(method != null,
+            $"Rotation has no {name}(DeskContext db) yet"
+            + (old != null ? $" — it still has week 9's {name}(string path)" : "")
+            + ".\n"
+            + "⚠️ That is Task 4: Save and Load take the desk's database instead of a "
+            + "file path. The parameter is the whole change:\n"
+            + "    public void Save(DeskContext db)\n"
+            + "    public void Load(DeskContext db)\n"
+            + "👉 Next: Lab/Rotation.cs. Your instructor's Switchboard.cs has the same two.");
+
+        return method!;
+    }
+
+    private static void Save(Rotation rotation, DbContext db) =>
+        Ask("Rotation.Save", () => RotationMethod("Save").Invoke(rotation, new object[] { db }));
+
+    private static void Load(Rotation rotation, DbContext db) =>
+        Ask("Rotation.Load", () => RotationMethod("Load").Invoke(rotation, new object[] { db }));
+
+    // ── Check 1 — everything the desk already does, and still has to ───────
 
     [Fact] // green before you start, and it has to STAY green
     public void Check1_TheDeskStillAnswers()
     {
-        // ── the parts nothing this week touches ────────────────────────────
-
         Assert.True(Broadcast.CallSign() == "KDXR",
             "Broadcast.CallSign() should return \"KDXR\" — that line ships finished and "
             + "nothing this week touches it. If this check is red, something in "
@@ -104,377 +163,362 @@ public class DeskChecks
 
         Assert.True(Broadcast.Clock(605) == "10:05",
             $"Broadcast.Clock(605) says \"{Broadcast.Clock(605)}\" and should say \"10:05\". "
-            + "That is week 7's repair and it ships already made.");
+            + "That method ships finished — undo whatever changed in it.");
 
         var song = new Song("Nightjar", "The Lamplighters", 227);
         song.Seconds = -400;
         Assert.True(song.Seconds == 227,
-            $"Song.Seconds accepted -400 and is now {song.Seconds}. That door was shut in "
-            + "week 4 and nothing this week goes near it.");
-
-        var ad = new Ad("Pham's Bakery", "open at five", 1);
-        ad.Play();
-        ad.Play();
-        Assert.True(ad.Remaining == 0,
-            $"A one-run buy aired twice and Remaining is {ad.Remaining}. Week 7's guard, "
-            + "and it ships already made.");
+            $"Song.Seconds accepted -400 and is now {song.Seconds}. Song.cs ships finished "
+            + "and nothing this week touches it.");
 
         var rotation = ThreeCarts();
         rotation.All().Clear();
         Assert.True(rotation.Count == 3,
-            $"Somebody emptied the list Rotation.All() handed them and the rotation went to "
-            + $"{rotation.Count}. All() hands back a COPY — week 4, and still the deal.\n"
-            + "⚠️ Every query you write tonight hands back a new list for the same reason. "
-            + "That is what the ToList() on the end of them is for.");
+            "Somebody emptied the list Rotation.All() handed them and the rotation went to "
+            + $"{rotation.Count}. All() hands back a copy, and it ships finished.");
 
-        // ⚠️ WEEK 8'S ROUND TRIP IS NOT IN HERE, and that is deliberate. It is
-        // the one thing the desk did last week that tonight MOVES, so it is
-        // checks 4 and 5 rather than a came-forward fact. The air log below
-        // stays exactly where it was — a file, and still a file at the end of
-        // the night.
+        // ── Find, which week 9 rewrote ─────────────────────────────────────
 
-        string noLog = Ask("Broadcast.LastShift", () => Broadcast.LastShift(Scratch("no-such.txt")));
-        Assert.True(noLog == "",
-            "Broadcast.LastShift() should hand back an empty string for a log that isn't "
-            + $"there, and it gave \"{noLog}\".\n"
-            + "⚠️ Task 1 rewrites this method. The File.Exists guard at the top STAYS — "
-            + "File.ReadAllLines throws on a missing file, so LINQ never gets asked "
-            + "anything at all.");
+        Song? found = Ask("Rotation.Find(\"Slack Water\")", () => rotation.Find("Slack Water"));
 
-        // ── the seven Task 1 rewrites, asserted ───────────────────────────
-        // Every one of these was green before you touched it. If one has gone
-        // red, the rewrite changed the answer — which is exactly what this
-        // check exists to tell you.
+        Assert.True(found != null && ReferenceEquals(found, rotation.All()[1]),
+            "Rotation.Find(\"Slack Water\") did not hand back the Slack Water the rotation "
+            + $"is holding. It handed back: {(found == null ? "nothing" : found.Title)}.\n"
+            + "Find hands back the cart ITSELF — the same object, never a copy — for the "
+            + "title it was asked for:\n"
+            + "    return _songs.FirstOrDefault(song => song.Title == title);\n"
+            + "👉 Next: read the question inside the brackets. It compares the song's Title "
+            + "with the title Find was handed.");
 
-        var hour = new Hour();
-        hour.Add(new StationId("KDXR 88.1, The Owl"));           // 12
-        hour.Add(new Song("Nightjar", "The Lamplighters", 227)); // 227
-        hour.Add(new Ad("Pham's Bakery", "open at five", 3));    // 30
-        hour.Add(new WeatherBed("clear, four below"));           // 45
+        Song? missing = Ask("Rotation.Find(\"No Such Cart\")", () => rotation.Find("No Such Cart"));
 
-        int hourSeconds = Ask("Hour.TotalSeconds", () => hour.TotalSeconds);
-        Assert.True(hourSeconds == 314,
-            $"Hour.TotalSeconds says {hourSeconds} for an hour holding 12 + 227 + 30 + 45 "
-            + "seconds, and it should say 314.\n"
-            + "This was a running total, a foreach and a += — and it was RIGHT. If it went "
-            + "red just now, the one-liner is adding up something other than Seconds:\n"
-            + "    public int TotalSeconds => _items.Sum(item => item.Seconds);\n"
-            + "👉 Next: read the lambda. The name before the => is each item in turn; what "
-            + "comes after it is the thing to add up about that item.");
+        Assert.True(missing == null,
+            "Rotation.Find was asked for a title no cart has, and it handed back "
+            + $"\"{missing?.Title}\" instead of nothing. A title that is not in the "
+            + "rotation gets null.");
 
-        int rotationSeconds = Ask("Rotation.TotalSeconds", () => ThreeCarts().TotalSeconds);
-        Assert.True(rotationSeconds == 810,
-            $"Rotation.TotalSeconds says {rotationSeconds} for 227 + 252 + 331 seconds, and "
-            + "it should say 810. Same line as Hour's, different nouns.");
+        var empty = new Rotation();
+        Song? fromEmpty = Ask("Rotation.Find on an empty rotation", () => empty.Find("Nightjar"));
 
-        var empty = new Hour();
-        int emptySeconds = Ask("Hour.TotalSeconds on an empty hour", () => empty.TotalSeconds);
-        Assert.True(emptySeconds == 0,
-            $"An empty hour says {emptySeconds} seconds long and should say 0. Sum over "
-            + "nothing is 0 — you do not have to guard for it.");
+        Assert.True(fromEmpty == null,
+            "Rotation.Find on an empty rotation should hand back nothing.");
 
-        IScheduleItem? longest = Ask("Hour.LongestItem", () => hour.LongestItem());
-        Assert.True(longest != null && longest.Seconds == 227,
-            "Hour.LongestItem() should hand back the 227-second song out of an hour holding "
-            + $"12, 227, 30 and 45 — it gave "
-            + $"{(longest == null ? "null" : longest.Seconds + " seconds")}.\n"
-            + "    public IScheduleItem? LongestItem() => _items.MaxBy(item => item.Seconds);\n"
-            + "👉 Next: MaxBy hands back the ITEM. Max would hand back the number, and then "
-            + "you could not ask it for its Cue.");
-
-        IScheduleItem? nothingLongest = Ask("Hour.LongestItem on an empty hour",
-            () => empty.LongestItem());
-        Assert.True(nothingLongest == null,
-            "The longest thing in an empty hour is null, and LongestItem() handed back "
-            + "something instead.\n"
-            + "MaxBy on an empty list answers null rather than throwing — which is why this "
-            + "method's return type has a ? on the end of it, and why OrderByDescending "
-            + "followed by First() is the wrong shape here.");
+        // ── the switchboard and the hour ────────────────────────────────────
 
         var board = new Switchboard();
-        board.Take("Dorothy");
-        board.Take("Bex");
-        board.Take("Dorothy");
+        var dorothy = new Caller("Dorothy");
+        board.Add(dorothy);
+        Assert.True(ReferenceEquals(board.Take("Dorothy"), dorothy),
+            "Switchboard.Take handed back a new Caller instead of the Dorothy on the board. "
+            + "Switchboard.cs is your instructor's file — copy it in again from the "
+            + "starters repo rather than editing it.");
 
-        int calls = Ask("Switchboard.TotalCalls", () => board.TotalCalls);
-        Assert.True(calls == 3,
-            $"Switchboard.TotalCalls says {calls} after three calls and should say 3. Third "
-            + "Sum in the program, same line as the other two.");
+        var hour = new Hour();
+        var spot = new Ad("Pham's Bakery", "open at five", 3);
+        hour.Add(spot);
+        hour.Add(new Song("Nightjar", "The Lamplighters", 227));
 
-        string regular = Ask("Switchboard.TheRegular", () => board.TheRegular());
-        Assert.True(regular == "Dorothy",
-            $"Switchboard.TheRegular() says \"{regular}\" after Dorothy rang twice and Bex "
-            + "once. It should say \"Dorothy\".\n"
-            + "This is the method you wrote in WEEK 3, over a dictionary. Same question:\n"
-            + "    _callers.MaxBy(caller => caller.CallsTonight)?.Name ?? \"nobody yet\"");
+        Assert.True(hour.TotalSeconds == 257,
+            $"An hour holding a 30-second spot and a 227-second song adds up to "
+            + $"{hour.TotalSeconds} and should add up to 257. Hour.cs is your instructor's "
+            + "file — copy it in again from the starters repo rather than editing it.");
 
-        var quiet = new Switchboard();
-        string nobody = Ask("Switchboard.TheRegular on a board nobody has rung",
-            () => quiet.TheRegular());
-        Assert.True(nobody == "nobody yet",
-            $"Switchboard.TheRegular() says \"{nobody}\" on a board nobody has rung, and it "
-            + "has to say \"nobody yet\" — exactly that, the same string it has said since "
-            + "week 3.\n"
-            + "⚠️ MaxBy on an empty list hands back NULL, so asking it for a .Name straight "
-            + "off throws. Two operators do the whole job:\n"
-            + "    _callers.MaxBy(caller => caller.CallsTonight)?.Name ?? \"nobody yet\"\n"
-            + "  ?.  don't ask a nothing for its Name\n"
-            + "  ??  and when there is nothing, say this instead\n"
-            + "👉 Next: that is what `string best = \"nobody yet\";` was doing before the "
-            + "loop, and it still has to be said somewhere.");
+        Assert.True(hour.Run()[0].Contains("(2 left)"),
+            "The hour printed the buy as it stood BEFORE the spot aired. Hour.cs is your "
+            + "instructor's file — copy it in again from the starters repo.");
 
-        Assert.True(board.Find("Dorothy") != null
-                    && ReferenceEquals(board.Find("Dorothy"), board.All()[0]),
-            "Switchboard.Find no longer hands back the caller the board is holding. Week 5, "
-            + "and nothing this week touches Find.");
-
-        // ── week 9's four answers, which are now things the desk simply does ──
+        // ── week 9's four questions, which are now things the desk does ────
 
         var asked = ThreeCarts();
 
-        List<Song> longOnes = Ask("Rotation.LongerThan", () => asked.LongerThan(240));
-        Assert.True(longOnes.Count == 2,
-            $"Rotation.LongerThan(240) handed back {longOnes.Count} carts and should hand "
-            + $"back 2 — Slack Water at 252 and Long Way Round at 331. It gave: "
-            + $"{Titles(longOnes)}. Week 9, and nothing tonight goes near it.");
+        List<Song> longOnes = Ask("Rotation.LongerThan(240)", () => asked.LongerThan(240));
+        Assert.True(longOnes.Select(s => s.Title).SequenceEqual(new[] { "Slack Water", "Long Way Round" }),
+            $"Rotation.LongerThan(240) gave {Titles(longOnes)} and should give Slack Water, "
+            + "Long Way Round. That is week 9's method and nothing tonight goes near it.");
 
-        asked.All()[0].Play();
-        List<Song> unplayed = Ask("Rotation.NeverPlayed", () => asked.NeverPlayed());
-        Assert.True(unplayed.Count == 2 && unplayed.All(s => s.PlaysTonight == 0),
-            $"Rotation.NeverPlayed() handed back {Titles(unplayed)} after one cart aired "
-            + "once. It should hand back the other two. Week 9.");
+        List<string> titles = Ask("Rotation.Titles()", () => asked.Titles());
+        Assert.True(titles.SequenceEqual(new[] { "Nightjar", "Slack Water", "Long Way Round" }),
+            $"Rotation.Titles() gave {string.Join(", ", titles)} and should give Nightjar, "
+            + "Slack Water, Long Way Round. Week 9's method, and nothing tonight touches it.");
 
-        var order = ThreeCarts();
-        List<Song> before = order.All();
-        order.All()[2].Play();
-        order.All()[2].Play();
-        order.All()[1].Play();
+        List<Song> sorted = Ask("Rotation.ByTitle()", () => asked.ByTitle());
+        Assert.True(sorted.Select(s => s.Title).SequenceEqual(new[] { "Long Way Round", "Nightjar", "Slack Water" })
+                    && asked.All()[0].Title == "Nightjar",
+            $"Rotation.ByTitle() gave {Titles(sorted)}, and afterwards the rotation itself "
+            + $"starts with {asked.All()[0].Title}. It should give Long Way Round, Nightjar, "
+            + "Slack Water, and leave the rotation starting with Nightjar. Week 9's method.");
 
-        List<Song> top = Ask("Rotation.TopPlayed", () => order.TopPlayed(2));
-        Assert.True(top.Count == 2 && top[0].Title == "Long Way Round",
-            $"Rotation.TopPlayed(2) handed back {Titles(top)}, hardest-worked first. It "
-            + "should start with Long Way Round, which aired twice. Week 9.");
-
-        Assert.True(order.All()[0].Title == before[0].Title
-                    && order.All()[2].Title == before[2].Title,
-            "⚠️ TopPlayed SORTED THE ROTATION. It is supposed to answer a question about "
-            + "the rotation and leave it exactly as it found it — OrderByDescending sorts "
-            + "a copy, List.Sort rearranges the list itself. Week 9, and it matters more "
-            + "tonight than it did then: the order the carts come out of Load is the order "
-            + "they went into the table.");
-
-        var airtime = new Hour();
-        var cart = new Song("Nightjar", "The Lamplighters", 227);
-        airtime.Add(cart);
-        List<string> running = Ask("Hour.RunningOrder", () => airtime.RunningOrder());
-        Assert.True(running.Count == 1 && cart.PlaysTonight == 0,
-            $"Hour.RunningOrder() put the hour ON THE AIR — Nightjar has aired "
-            + $"{cart.PlaysTonight} times and should have aired 0. A query asks; Run() "
-            + "does. Week 9.");
+        List<Song> water = Ask("Rotation.Matching(\"Water\")", () => asked.Matching("Water"));
+        Assert.True(water.Count == 1 && water[0].Title == "Slack Water",
+            $"Rotation.Matching(\"Water\") gave {Titles(water)} and should give Slack Water. "
+            + "Week 9's method, and nothing tonight goes near it.");
     }
 
-    // ── Check 2 — Task 2: a cart the database can keep ────────────────────
+
+    // ── Check 2 — Task 2: a cart the database can keep ──────────────────────
 
     [Fact]
     public void Check2_ACartIsShapedForATable()
     {
-        // Ask EF Core what it thinks this class is. Building the model reads
-        // the class and the attributes on it; it opens no connection.
-        using var db = new DeskContext(SomewhereElse("shape"));
+        using DbContext db = Somewhere(Fresh("shape"));
 
-        Microsoft.EntityFrameworkCore.Metadata.IEntityType? cart =
-            Ask("the model EF Core builds for Song", () => db.Model.FindEntityType(typeof(Song)));
-
-        Assert.True(cart != null,
-            "EF Core does not know about Song at all.\n"
-            + "⚠️ A class becomes a table by being named in the context. DeskContext needs:\n"
-            + "    public DbSet<Song> Carts { get; set; }\n"
-            + "👉 Next: open Lab/DeskContext.cs and look for that line.");
-
-        var key = cart!.FindPrimaryKey();
-        Assert.True(key != null && key.Properties.Count == 1
-                    && key.Properties[0].Name == "Id",
-            "Song has no Id for the database to tell its rows apart by"
-            + (key == null ? "" : $" — the key it found was {string.Join(", ", key.Properties.Select(k => k.Name))}")
-            + ".\n"
-            + "⚠️ A table needs one column that is different on every row, and EF Core "
-            + "looks for a property called Id. Nothing at the station has one; this is the "
-            + "database's own name for the row.\n"
-            + "    public int Id { get; set; }\n"
-            + "👉 Next: add it at the top of Song.cs.");
-
-        foreach (string worked in new[] { "Length", "Kind", "Cue" })
+        // Building the model reads the classes; it opens no connection.
+        IModel model;
+        try
         {
-            Assert.True(cart.FindProperty(worked) == null,
-                $"Song.{worked} is being stored as a column, and it should not be.\n"
-                + "⚠️ A table gets a column for everything the class can tell you, "
-                + "including the things it WORKS OUT. Length is arithmetic on Seconds; "
-                + "Kind is the same word on every row; Cue is Title and Artist stuck "
-                + "together. Storing any of them means keeping the same fact twice and "
-                + "letting the two drift apart.\n"
-                + $"    [NotMapped]\n    public string {worked} => ...\n"
-                + "👉 Next: put [NotMapped] on it, and add\n"
-                + "    using System.ComponentModel.DataAnnotations.Schema;\n"
-                + "   at the top of Song.cs if it is not there yet.");
+            model = db.Model;
+        }
+        catch (Exception e)
+        {
+            string message = e.Message;
+            throw new Xunit.Sdk.XunitException(
+                "EF Core could not work out a table for one of your classes:\n"
+                + $"    {message}\n"
+                + (message.Contains("'Caller'") || message.Contains("Song' requires")
+                    ? "⚠️ If that names Caller, or names Song while you have not given Song an "
+                      + "Id yet, copy your instructor's Caller.cs in first — Task 2 starts with "
+                      + "it. The Caller in the starter cannot be kept in a table.\n"
+                    : "")
+                + "👉 Next: if it says 'requires a primary key', the class it names needs\n"
+                + "    public int Id { get; set; }");
         }
 
-        // Seconds IS a fact the cart keeps, so it had better be a column.
-        Assert.True(cart.FindProperty("Seconds") != null,
-            "Song.Seconds is not a column, and it has to be — it is the one number the "
-            + "desk cannot work out for itself. Check you have not put [NotMapped] on it "
-            + "by mistake.");
+        IEntityType? cart = model.FindEntityType(typeof(Song));
+
+        Assert.True(cart != null,
+            "DeskContext does not have a table for Song.\n"
+            + "A class becomes a table by having a DbSet in the context:\n"
+            + "    public DbSet<Song> Carts { get; set; }\n"
+            + "👉 Next: add that line to Lab/DeskContext.cs, under the Callers one.");
+
+        IKey? key = cart!.FindPrimaryKey();
+        Assert.True(key != null && key.Properties.Count == 1 && key.Properties[0].Name == "Id"
+                    && key.Properties[0].ClrType == typeof(int),
+            "Song has no Id for the database to tell its rows apart by.\n"
+            + "    public int Id { get; set; }\n"
+            + "👉 Next: add it at the top of the Song class in Lab/Song.cs.");
+
+        foreach (string kept in new[] { "Title", "Artist", "Seconds", "PlaysTonight" })
+        {
+            Assert.True(cart.FindProperty(kept) != null,
+                $"Song.{kept} is not a column in the Carts table, and it has to be: it is a "
+                + "fact the cart keeps. Check you have not put [NotMapped] on it.");
+        }
+
+        Assert.True(model.FindEntityType(typeof(Caller)) != null,
+            "DeskContext has no table for the callers. Your instructor's Switchboard.cs "
+            + "saves to db.Callers, so the context needs both:\n"
+            + "    public DbSet<Caller> Callers { get; set; }\n"
+            + "    public DbSet<Song> Carts { get; set; }");
+
+        Assert.True(Context().GetConstructor(Type.EmptyTypes) != null,
+            "DeskContext has no constructor that takes nothing. `dotnet ef` and the desk "
+            + "both make a DeskContext that way, so it has to be there:\n"
+            + "    public DeskContext()\n"
+            + "    {\n"
+            + "    }");
     }
 
-    // ── Check 3 — Task 3: the table actually got made ─────────────────────
+    // ── Check 3 — Task 3: the instructions that made the tables ─────────────
+
+    private static bool Derives(Type type, string fullName)
+    {
+        for (Type? t = type.BaseType; t != null; t = t.BaseType)
+        {
+            if (t.FullName == fullName)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
 
     [Fact]
     public void Check3_ThereIsAMigration()
     {
-        // A migration is a CLASS. `dotnet ef migrations add` writes it into
-        // your project, so it is in the compiled program and can be found.
-        Type[] migrations = typeof(Rotation).Assembly
-            .GetTypes()
-            .Where(type => typeof(Microsoft.EntityFrameworkCore.Migrations.Migration)
-                               .IsAssignableFrom(type)
-                           && !type.IsAbstract)
+        Type[] types = typeof(Rotation).Assembly.GetTypes();
+
+        Type[] migrations = types
+            .Where(t => !t.IsAbstract && Derives(t, "Microsoft.EntityFrameworkCore.Migrations.Migration"))
             .ToArray();
 
         Assert.True(migrations.Length > 0,
-            "There is no migration in this project.\n"
-            + "⚠️ A migration is the instructions for making the table. It is a C# class "
-            + "that `dotnet ef` writes for you, by comparing what your context says to "
-            + "what it made last time:\n"
+            "There is no migration in your Lab project.\n"
+            + "A migration is the instructions for making the tables. `dotnet ef` writes it "
+            + "for you, from your DeskContext:\n"
+            + "    dotnet ef migrations add TheDeskMovesIn --project week-10/Lab\n"
+            + "👉 Next: run that, then open Lab/Migrations/ and read Up().\n"
+            + "⚠️ Writing the migration does not make the tables. `dotnet ef database update` "
+            + "is the command that talks to the server, and this check cannot see whether you "
+            + "ran it. Running the desk is what tells you that.");
+
+        Type? snapshot = types.FirstOrDefault(t => Derives(t, "Microsoft.EntityFrameworkCore.Infrastructure.ModelSnapshot"));
+        IModel? model = snapshot == null
+            ? null
+            : snapshot.GetProperty("Model")!.GetValue(Activator.CreateInstance(snapshot, true)) as IModel;
+
+        Assert.True(model != null && model.FindEntityType("Song") != null,
+            "Your migration makes no Carts table. It was written before DeskContext had a "
+            + "DbSet<Song> in it, so it only knows about the callers.\n"
+            + "👉 Next: one more migration picks up what changed since the last one:\n"
             + "    dotnet ef migrations add TheCartsMoveIn --project week-10/Lab\n"
-            + "👉 Next: run that, then look in Lab/Migrations/ and read the Up() method — "
-            + "it is your Song class with the column types filled in.\n"
-            + "⚠️ Making the migration does not make the table. `dotnet ef database update` "
-            + "is the one that talks to the server, and this check cannot see whether you "
-            + "ran it — running the desk is what tells you that.");
+            + "   then `dotnet ef database update --project week-10/Lab`.");
     }
 
-    // ── Check 4 — Task 4: the carts go into the table ──────────────────────
+    // ── Check 4 — Task 4: the carts go into the table and come back out ─────
 
     [Fact]
-    public void Check4_TheCartsGoIntoTheTable()
+    public void Check4_TheCartsSurviveARestart()
     {
-        var somewhere = SomewhereElse("save");
-        var rotation = ThreeCarts();
+        string table = Fresh("restart");
 
-        using (var db = new DeskContext(somewhere))
-        {
-            Ask("Rotation.Save", () => { rotation.Save(db); return 0; });
-        }
-
-        using (var db = new DeskContext(somewhere))
-        {
-            // db.Set<Song>() rather than db.Carts — the checks do not care
-            // what you called the DbSet property.
-            int rows = db.Set<Song>().Count();
-
-            Assert.True(rows == 3,
-                $"Three carts were saved and the table holds {rows} of them.\n"
-                + (rows == 0
-                    ? "⚠️ Nothing arrived. Add() only writes down what you INTEND to do — "
-                      + "db.SaveChanges() is the line that actually does it, and every Save "
-                      + "needs one at the end.\n"
-                    : "⚠️ Too many. Every cart went in as a NEW row. A cart that came out "
-                      + "of the table is carrying an Id, and that one is not new — it is a "
-                      + "row that CHANGES.\n")
-                + "👉 Next: read Rotation.Save. Each cart is one of two things, and its Id "
-                + "says which: 0 means new (Add), anything else means the table already has "
-                + "a row for it (Update).");
-        }
-
-        // Saving twice must not double anything up — the desk signs off every
-        // night, and the file it replaced was rewritten whole every time.
-        using (var db = new DeskContext(somewhere))
-        {
-            rotation.Save(db);
-        }
-
-        using (var db = new DeskContext(somewhere))
-        {
-            // db.Set<Song>() rather than db.Carts — the checks do not care
-            // what you called the DbSet property.
-            int rows = db.Set<Song>().Count();
-
-            Assert.True(rows == 3,
-                $"Saved the same three carts a second time and the table now holds {rows}.\n"
-                + "⚠️ Every sign-off writes the whole rotation back, so saving twice must "
-                + "not double anything up. A cart that is already on file is an UPDATE, not "
-                + "an Add — and its Id is how you can tell.\n"
-                + "👉 Next: if (cart.Id == 0) Add, else Update.");
-        }
-    }
-
-    // ── Check 5 — Task 5: and they come back out ──────────────────────────
-
-    [Fact]
-    public void Check5_TheCartsComeBackOut()
-    {
-        var somewhere = SomewhereElse("load");
         var rotation = ThreeCarts();
         rotation.All()[0].Play();
 
-        using (var db = new DeskContext(somewhere))
+        using (DbContext db = Somewhere(table))
         {
-            rotation.Save(db);
+            Save(rotation, db);
+        }
+
+        using (DbContext db = Somewhere(table))
+        {
+            int rows = db.Set<Song>().Count();
+
+            Assert.True(rows == 3,
+                $"Three carts were saved and the table holds {rows}.\n"
+                + (rows == 0
+                    ? "⚠️ Nothing arrived. Add only writes down what you INTEND. "
+                      + "db.SaveChanges() is the line that sends it, and Save needs it at the "
+                      + "end, after the loop.\n"
+                    : "")
+                + "    foreach (Song song in _songs)\n"
+                + "    {\n"
+                + "        db.Carts.Add(song);\n"
+                + "    }\n"
+                + "\n"
+                + "    db.SaveChanges();");
         }
 
         var reopened = new Rotation();
 
-        using (var db = new DeskContext(somewhere))
+        using (DbContext db = Somewhere(table))
         {
-            Ask("Rotation.Load", () => { reopened.Load(db); return 0; });
+            Load(reopened, db);
         }
 
         Assert.True(reopened.Count == 3,
-            $"Three carts went into the table and {reopened.Count} came back out.\n"
-            + (reopened.Count == 0
-                ? "⚠️ Nothing came back. db.Carts is the table; .ToList() is what asks it "
-                  + "for everything in it.\n"
-                : "")
-            + "👉 Next: read Rotation.Load — Clear(), then AddRange over db.Carts.ToList().");
+            $"Three carts went into the table and the rotation holds {reopened.Count} after "
+            + "Load.\n"
+            + "    List<Song> loaded = db.Carts.OrderBy(song => song.Id).ToList();\n"
+            + "👉 Next: Load reads the table into a list, then Clear() and AddRange(loaded).");
 
-        Assert.True(reopened.All()[0].Title == "Nightjar",
-            $"The first cart back is \"{reopened.All()[0].Title}\" and should be "
-            + "\"Nightjar\". The carts have to come back in the order they went in — the "
-            + "hour and the rotation both count on it.");
+        Assert.True(reopened.All().Select(s => s.Title)
+                        .SequenceEqual(new[] { "Nightjar", "Slack Water", "Long Way Round" }),
+            $"The carts came back as {Titles(reopened.All())}, and they went in as Nightjar, "
+            + "Slack Water, Long Way Round. The hour is built from the first three, so the "
+            + "order matters.\n"
+            + "⚠️ A table keeps no order of its own. Ask for it:\n"
+            + "    db.Carts.OrderBy(song => song.Id).ToList()");
 
-        int plays = reopened.All().Sum(s => s.PlaysTonight);
-        Assert.True(plays == 1,
-            $"A cart that aired once came back having aired {plays} times. The plays are "
-            + "part of the cart, and they survive the night with it.");
+        Assert.True(reopened.All()[0].PlaysTonight == 1,
+            $"Nightjar aired once before it was saved and came back saying "
+            + $"{reopened.All()[0].PlaysTonight}. PlaysTonight is a column — check it has no "
+            + "[NotMapped] on it.");
 
-        // ⚠️ THE FIRST NIGHT: an empty table must leave the rotation alone.
+        // Loading twice must not stack the carts up.
+        using (DbContext db = Somewhere(table))
+        {
+            Load(reopened, db);
+        }
+
+        Assert.True(reopened.Count == 3,
+            $"Loaded twice, and the rotation holds {reopened.Count} carts.\n"
+            + "⚠️ Loading is REPLACING. _songs.Clear() goes before the AddRange.");
+
+        // ⚠️ The first night: a table nobody has saved to yet.
         var firstNight = ThreeCarts();
 
-        using (var db = new DeskContext(SomewhereElse("first-night")))
+        using (DbContext db = Somewhere(Fresh("first-night")))
         {
-            Ask("Rotation.Load from an empty table", () => { firstNight.Load(db); return 0; });
+            Load(firstNight, db);
         }
 
         Assert.True(firstNight.Count == 3,
             $"A rotation holding 3 carts loaded from an EMPTY table and now holds "
             + $"{firstNight.Count}.\n"
-            + "⚠️ This is the first night, and it is the one case that crashes the desk. "
-            + "Program.cs adds three carts and THEN calls Load. On a table nobody has saved "
-            + "to yet, a Load that clears first throws those three away, and the next line "
-            + "of Program.cs reaches for carts[0] and finds nothing.\n"
-            + "⚠️ Week 8 had this too — it is what the File.Exists guard at the top of Load "
-            + "was for. The table is always there; on the first night it is empty, which is "
-            + "the same situation wearing different clothes.\n"
-            + "👉 Next: read the rows into a list FIRST, and return early when there are "
-            + "none of them.");
+            + "⚠️ That is the first night. The table is always there, but nobody has saved "
+            + "to it yet. A Load that clears first throws away the three carts Program.cs "
+            + "just added, and the desk crashes building the hour.\n"
+            + "👉 Next: read the rows into a list FIRST, and return before the Clear() when "
+            + "there are none:\n"
+            + "    if (loaded.Count == 0)\n"
+            + "    {\n"
+            + "        return;\n"
+            + "    }");
+    }
 
-        // And loading twice does not stack them up.
-        using (var db = new DeskContext(somewhere))
+    // ── Check 5 — Task 5: the second save changes the rows it already has ───
+
+    [Fact]
+    public void Check5_ASecondSaveUpdatesTheRows()
+    {
+        string table = Fresh("second-save");
+
+        using (DbContext db = Somewhere(table))
         {
-            reopened.Load(db);
+            Save(ThreeCarts(), db);
         }
 
-        Assert.True(reopened.Count == 3,
-            $"Loaded twice and the rotation holds {reopened.Count} carts.\n"
-            + "⚠️ Loading is REPLACING. _songs.Clear() at the top of Load.");
+        // The next shift: one context, read at the start and written at the
+        // end, the same way the desk does it.
+        var nextNight = new Rotation();
+
+        using (DbContext db = Somewhere(table))
+        {
+            Load(nextNight, db);
+            nextNight.All()[2].Play();
+
+            try
+            {
+                RotationMethod("Save").Invoke(nextNight, new object[] { db });
+            }
+            catch (TargetInvocationException e) when (e.InnerException != null)
+            {
+                throw new Xunit.Sdk.XunitException(
+                    "The second save threw instead of saving:\n"
+                    + $"    {e.InnerException.GetType().Name}: {e.InnerException.Message}\n"
+                    + "⚠️ Every cart that came out of the table already has a row, and its Id "
+                    + "is that row's number. Add tries to put it in AGAIN. On the college's "
+                    + "server the same mistake says 'Cannot insert explicit value for identity "
+                    + "column'.\n"
+                    + "👉 Next: a cart with Id 0 is new. Any other Id is a row that changes:\n"
+                    + "    if (song.Id == 0)\n"
+                    + "    {\n"
+                    + "        db.Carts.Add(song);\n"
+                    + "    }\n"
+                    + "    else\n"
+                    + "    {\n"
+                    + "        db.Carts.Update(song);\n"
+                    + "    }");
+            }
+        }
+
+        var reopened = new Rotation();
+
+        using (DbContext db = Somewhere(table))
+        {
+            Assert.True(db.Set<Song>().Count() == 3,
+                $"Saved, loaded and saved again, and the table holds {db.Set<Song>().Count()} "
+                + "carts. It should still hold 3: a cart that came out of the table is a row "
+                + "that changes, not a new row.");
+
+            Load(reopened, db);
+        }
+
+        Assert.True(reopened.All()[2].PlaysTonight == 1,
+            $"Long Way Round aired on the second night and came back saying "
+            + $"{reopened.All()[2].PlaysTonight}. The second save has to change the row "
+            + "it already has.");
     }
 }

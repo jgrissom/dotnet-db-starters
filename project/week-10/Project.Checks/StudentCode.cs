@@ -15,23 +15,20 @@
 //  That is the whole trick, and it is why NewItem has to be there even
 //  though your program barely uses it. It is the door.
 //
-//  ⚠️ NEW THIS WEEK: three members, and their signatures are part of the
-//  deal the way every dictated name has been since week 4:
+//  ⚠️ NEW THIS WEEK: a second dictated class name, and a new signature
+//  on two members you already have:
 //
-//      public List<string> Names()
-//      public List<YourRecord> Sorted()
-//      public List<YourRecord> Matching(string term)
+//      public class ProjectContext : DbContext
+//      public void Save(ProjectContext db)
+//      public void Load(ProjectContext db)
+//
+//  The context is handed IN, never made inside Registry — which is what lets
+//  these checks hand your registry a table that lives in the test run
+//  rather than the one on the college's server.
 //
 //  ⭐ Notice what these checks do NOT do: they never look for a property
 //  called Name. They cannot — yours might be Corner or Title or Elevation.
-//  So Sorted() is verified by REFERENCE: three records go in, and the
-//  checks ask your own Find for each one and compare what came back with
-//  what Sorted() put in each position. Names() is verified against the
-//  three strings the checks handed NewItem in the first place.
-//
-//  Week 8's Save and Load are still dictated, and the PATH is still handed
-//  in — which is what lets these checks hand your registry a scratch file
-//  in the system's temp folder rather than the one your program uses.
+//  Records are found through your own Find, and compared by reference.
 //
 //  Nothing in here looks for a method by name on YOUR record, and nothing
 //  reads a word of what your Kind or your Line() actually SAY. They ask
@@ -602,8 +599,33 @@ internal static class StudentCode
     // classes; it opens no connection.
     internal static Microsoft.EntityFrameworkCore.Metadata.IEntityType TheTable(object context)
     {
-        var model = (Microsoft.EntityFrameworkCore.Metadata.IModel)
-            ContextType().GetProperty("Model")!.GetValue(context)!;
+        Microsoft.EntityFrameworkCore.Metadata.IModel model;
+        try
+        {
+            model = (Microsoft.EntityFrameworkCore.Metadata.IModel)
+                ContextType().GetProperty("Model")!.GetValue(context)!;
+        }
+        catch (TargetInvocationException e) when (e.InnerException != null)
+        {
+            string message = e.InnerException.Message;
+            throw new Xunit.Sdk.XunitException(
+                "EF Core could not work out a table for your record:\n"
+                + $"    {message}\n"
+                + (message.Contains("Cannot bind")
+                    ? "⚠️ A property with only { get; } is left out of the table, so EF Core "
+                      + "cannot hand the constructor that value when it reads a record back. "
+                      + "Give the property a private set:\n"
+                      + "    public string Name { get; private set; }\n"
+                    : "")
+                + (message.Contains("requires a primary key") && !message.Contains($"'{ItemType().Name}'")
+                    ? "⚠️ That names a class your context never mentions. One of your record's "
+                      + "properties holds that class, so EF Core tried to make a table for it "
+                      + "too. Put [NotMapped] on that property, and\n"
+                      + "    using System.ComponentModel.DataAnnotations.Schema;\n"
+                      + "   at the top of the file.\n"
+                    : "")
+                + "👉 Next: run `dotnet ef migrations add` and read the same message there.");
+        }
 
         var entity = model.FindEntityType(ItemType());
 
@@ -668,11 +690,10 @@ internal static class StudentCode
             throw new Xunit.Sdk.XunitException(
                 $"Registry.Save threw {e.InnerException.GetType().Name}:\n"
                 + $"    {e.InnerException.Message}\n"
-                + "⚠️ Save writes the whole registry back, and every record is one of "
-                + "three things — its Id says which. Id == 0 has never been on file (Add); "
-                + "any other Id means the table already has that row (Update); and a row "
-                + "the registry no longer holds comes off (Remove). Then SaveChanges() to "
-                + "make any of it happen.");
+                + "⚠️ Every record is one of two things, and its Id says which. Id == 0 "
+                + "has never been saved (Add). Any other Id is a row the table already has "
+                + "(Update) — Add on one of those tries to put the same row in twice. Then "
+                + "SaveChanges() to send any of it.");
         }
     }
 

@@ -1,15 +1,12 @@
 // ═══════════════════════════════════════════════════════════════════
 //  KDXR 88.1 "The Owl" — what's in rotation tonight.
 //
-//  ANSWER KEY — week 8's Rotation with week 9's work in: two loops
-//  collapsed (Task 1) and three questions the desk could not ask before
-//  (Tasks 2, 3 and 4).
-//
-//  ⚠️ All() copies the LIST. It does not copy the songs in it — which is
-//  why the hour and the rotation hold the SAME carts, and why a play
-//  counted in one is counted in the other. Every query below hands back a
-//  new list for the same reason.
+//  YOURS, all night. Save and Load still use a file. In Task 4 they take
+//  the desk's database instead, and in Task 5 Save learns to tell a new
+//  cart from one that came out of the table. Everything below them is
+//  week 9's, finished.
 // ═══════════════════════════════════════════════════════════════════
+using System.Text.Json;
 
 public class Rotation
 {
@@ -33,70 +30,70 @@ public class Rotation
         return new List<Song>(_songs);
     }
 
-    // How long the whole rotation runs.
-    //
-    // Task 1 — and this is week 4's promise, collected. It was a running
-    // total, a foreach and a `+=`; it is the word Sum and the thing being
-    // added up. Exactly the same answer, and the suite says so.
-    public int TotalSeconds => _songs.Sum(song => song.Seconds);
-
-    // ── week 10: the carts, in the database ────────────────────────────────
-    // The context is handed in and never made in here, for exactly the reason
-    // the path was handed in in week 8: WHERE the desk keeps its carts is a
-    // fact about the machine and the network, and this class knows nothing
-    // about either. It is also what lets a test hand in somewhere else.
-
-    // TODO — Task 4. Write the whole rotation back to the table.
-    //
-    // ⚠️ Every cart is one of two things, and its Id is how you tell:
-    //
-    //   Id == 0   this cart has never been in the table. It is NEW.
-    //   Id != 0   the table already has a row for it, so that row CHANGES —
-    //             which is how tonight's plays land on last night's cart.
-    //
-    // And whichever it is, nothing happens at all until you tell the database
-    // to do it. That is the line people forget.
-    //
-    // Until then the desk still runs — it just forgets everything at sign-off.
-    public void Save(DeskContext db)
+    // Week 9. FirstOrDefault hands back the first cart the question is true
+    // for, or null when it is true of none — which is exactly what the loop
+    // did when it fell out of the bottom. First would THROW there instead.
+    public Song? Find(string title)
     {
+        return _songs.FirstOrDefault(song => song.Title == title);
     }
 
-    // TODO — Task 5. Read the carts back.
-    //
-    // ⚠️ Two things this has to get right, and week 8 had both:
-    //   • loading is REPLACING, not adding
-    //   • the FIRST NIGHT — nobody has saved anything yet, and the rotation
-    //     already holds the three carts Program.cs put in it
-    public void Load(DeskContext db)
+    // TODO — Task 4: Save and Load take a DeskContext instead of a path.
+    public void Save(string path)
     {
+        string json = JsonSerializer.Serialize(_songs,
+            new JsonSerializerOptions { WriteIndented = true });
+
+        File.WriteAllText(path, json);
     }
 
-    // ── week 9: things the desk can finally ask ────────────────────────────
-    // Three questions. Each one is a list, a question, and ToList() on the
-    // end — because a caller wants an answer, not a recipe for working one out.
+    public void Load(string path)
+    {
+        if (!File.Exists(path))
+        {
+            return;
+        }
 
-    // Task 2. Anything long enough to cover the 4 AM news feed.
+        List<Song>? loaded = JsonSerializer.Deserialize<List<Song>>(File.ReadAllText(path));
+
+        if (loaded == null)
+        {
+            return;
+        }
+
+        _songs.Clear();
+
+        // Week 9. Not a query: "put all of these in" is a job, and the list
+        // has a method for it. The Clear() above it stays — loading replaces.
+        _songs.AddRange(loaded);
+    }
+
+    // Week 9. Where keeps the carts the question is true for, in the order
+    // it found them. ToList turns that into a list to hand back.
     public List<Song> LongerThan(int seconds)
     {
         return _songs.Where(song => song.Seconds > seconds).ToList();
     }
 
-    // Task 3. The carts that have not been out tonight — the ones a DJ at
-    // 4 AM is actually looking for.
-    public List<Song> NeverPlayed()
+    // Week 9. Select keeps every cart and hands back one thing about each.
+    public List<string> Titles()
     {
-        return _songs.Where(song => song.PlaysTonight == 0).ToList();
+        return _songs.Select(song => song.Title).ToList();
     }
 
-    // Task 4. The carts that have had the most airings, hardest-worked first.
-    //
-    // OrderByDescending sorts a COPY and hands it back; the rotation itself is
-    // in the order it was loaded in, before and after. Take stops at n, and
-    // asking for more than there are is not an error — it just gives you all
-    // of them.
-    public List<Song> TopPlayed(int n)
+    // Week 9. OrderBy builds a NEW, sorted list and leaves _songs alone.
+    // _songs.Sort(...) would rearrange the rotation itself, and Save would
+    // then write the file in the new order.
+    public List<Song> ByTitle()
     {
-        return _songs.OrderByDescending(song => song.PlaysTonight).Take(n).ToList();
+        return _songs.OrderBy(song => song.Title).ToList();
+    }
+
+    // Week 9. Where again, with a string question: Contains asks whether the
+    // term is anywhere inside the title. == would ask whether the title IS
+    // the term, and that is Find's job.
+    public List<Song> Matching(string term)
+    {
+        return _songs.Where(song => song.Title.Contains(term)).ToList();
     }
 }

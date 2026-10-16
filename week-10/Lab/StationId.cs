@@ -1,16 +1,15 @@
 // ═══════════════════════════════════════════════════════════════════
 //  KDXR 88.1 "The Owl" — the legal ID.
 //
-//  Your week 6 work, FINISHED, untouched by the update. Twelve seconds,
-//  counts its own airings, still has a voice — nothing in here changes
-//  tonight.
+//  FINISHED. Twelve seconds, and it counts its own airings. Nothing in
+//  here changes tonight.
 // ═══════════════════════════════════════════════════════════════════
 
 public class StationId : IScheduleItem
 {
     public string Words { get; }
 
-    // Readable anywhere, moved by Play() and nothing else. Last week's shape.
+    // Readable anywhere, moved by Play() and nothing else.
     public int TimesAired { get; private set; }
 
     public string Kind => "IDENT";
