@@ -12,7 +12,7 @@
 //  be green when you have finished. Check 1 and your own suite are what
 //  make changing working code a safe thing to do.
 //
-//  Checks 2, 3 and 4 are three questions the rotation cannot answer yet.
+//  Checks 2 to 5 are four questions the rotation cannot answer yet.
 //
 //  ⚠️ Nothing in here reads what the desk prints. Every assert is on a
 //  value or on an object's state, so you can print whatever you like.
@@ -369,5 +369,70 @@ public class DeskChecks
         Assert.True(fromEmpty == 0,
             $"Rotation.ByTitle() on an empty rotation handed back {fromEmpty} cart(s). "
             + "Sorting nothing gives an empty list — not null, and not an error.");
+    }
+
+    // ── Check 5 — Task 5: every cart with this text in its title ───────────
+    [Fact]
+    public void Check5_TheDeskSearchesItsTitles()
+    {
+        var rotation = ThreeCarts();
+
+        List<Song> water = Ask("Rotation.Matching(\"Water\")", () => rotation.Matching("Water"));
+        Assert.True(water.Count == 1 && water[0].Title == "Slack Water",
+            $"Rotation.Matching(\"Water\") gave {Titles(water)} and should give Slack Water. "
+            + "\"Water\" is the end of that title, not the whole of it.\n"
+            + "    public List<Song> Matching(string term)\n"
+            + "    {\n"
+            + "        return _songs.Where(song => song.Title.Contains(term)).ToList();\n"
+            + "    }\n"
+            + "⚠️ Two spellings give nothing here. song.Title == term asks whether the "
+            + "title IS the term, and no title is just \"Water\". StartsWith only looks at "
+            + "the front of the title. Contains looks everywhere in it.\n"
+            + "👉 Next: read the question inside the brackets. If there are no brackets "
+            + "yet, the method is still handing back the empty list it ships with.");
+
+        // "Way" is in the MIDDLE of "Long Way Round", so StartsWith misses it.
+        List<Song> way = Ask("Rotation.Matching(\"Way\")", () => rotation.Matching("Way"));
+        Assert.True(way.Count == 1 && way[0].Title == "Long Way Round",
+            $"Rotation.Matching(\"Way\") gave {Titles(way)} and should give Long Way Round. "
+            + "\"Way\" is in the MIDDLE of that title.\n"
+            + "⚠️ StartsWith and EndsWith each look at one end of the title. Contains "
+            + "looks everywhere in it.\n"
+            + "👉 Next: read the question inside the brackets.");
+
+        List<Song> anA = Ask("Rotation.Matching(\"a\")", () => rotation.Matching("a"));
+        Assert.True(anA.Select(s => s.Title)
+                .SequenceEqual(new[] { "Nightjar", "Slack Water", "Long Way Round" }),
+            $"Rotation.Matching(\"a\") gave {Titles(anA)}. Every title tonight has a small "
+            + "a in it, so it should give all three, in the rotation's own order: "
+            + "Nightjar, Slack Water, Long Way Round.\n"
+            + "Where does not reorder anything. If they came back in order by title, there "
+            + "is an OrderBy in Matching that doesn't belong there.");
+
+        List<Song> lower = Ask("Rotation.Matching(\"water\")", () => rotation.Matching("water"));
+        Assert.True(lower.Count == 0,
+            $"Rotation.Matching(\"water\") gave {Titles(lower)} and should give nothing. "
+            + "The title says Water, with a capital W, and Contains compares the letters "
+            + "exactly, the same way Find does. Leave it that way tonight.");
+
+        List<Song> none = Ask("Rotation.Matching(\"Zebra\")", () => rotation.Matching("Zebra"));
+        Assert.True(none != null && none.Count == 0,
+            "Rotation.Matching(\"Zebra\") should hand back an empty list. No title has "
+            + "Zebra in it, and a question that is true of nothing keeps nothing — not "
+            + "null, and not an error.");
+
+        var empty = new Rotation();
+        int fromEmpty = Ask("Rotation.Matching on an empty rotation", () => empty.Matching("Water").Count);
+        Assert.True(fromEmpty == 0,
+            $"Rotation.Matching on an empty rotation handed back {fromEmpty} cart(s). "
+            + "Searching nothing gives an empty list.");
+
+        Assert.True(ReferenceEquals(water[0], rotation.All()[1]),
+            "Matching handed back a cart the rotation is not holding — a copy, or a new "
+            + "Song built from one. Where hands back the carts themselves.");
+
+        Assert.True(rotation.Count == 3,
+            $"Asking Matching changed the rotation — it holds {rotation.Count} carts now "
+            + "and it held 3 before. A question never changes the list it is asked of.");
     }
 }

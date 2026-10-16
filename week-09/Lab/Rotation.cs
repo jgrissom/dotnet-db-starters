@@ -3,8 +3,8 @@
 //
 //  This is YOUR file tonight. Everything down to Load works, and Task 1
 //  has you rewrite two pieces of it anyway: the loop in Find and the loop
-//  at the bottom of Load. The three methods under Load are empty, and
-//  they are Tasks 2, 3 and 4.
+//  at the bottom of Load. The four methods under Load are empty, and
+//  they are Tasks 2, 3, 4 and 5.
 //
 //  Every one of tonight's answers is one line, and none of them changes
 //  the list it asks about.
@@ -102,6 +102,14 @@ public class Rotation
     // TODO — Task 4. Every cart, in order by title. The rotation's own order
     // must be exactly what it was before anybody asked.
     public List<Song> ByTitle()
+    {
+        return new List<Song>();
+    }
+
+    // TODO — Task 5. Every cart with this bit of text anywhere in its title,
+    // in the rotation's own order. The desk's [f] key shows them when it
+    // can't find a cart with exactly the title you typed.
+    public List<Song> Matching(string term)
     {
         return new List<Song>();
     }

@@ -15,7 +15,7 @@
 //     r  take a request        a  put the hour on air
 //     h  redraw the hour       c  the switchboard
 //     t  the carts, and what each one has played
-//     f  find a cart by its title
+//     f  find a cart by its title, or the carts with that text in it
 //     n  the night's numbers
 //     q  end the shift
 //
@@ -326,6 +326,17 @@ void FindACart()
     {
         AnsiConsole.MarkupLine($"  [{Dim}]No cart called[/] [{Fg}]\"{Markup.Escape(title)}\"[/] "
             + $"[{Dim}]in the rotation.[/]");
+
+        // Task 5. Nothing is called exactly that, so ask for the carts with
+        // it anywhere in their title. Until Matching is written it hands back
+        // nothing, and this line stays quiet.
+        List<Song> close = rotation.Matching(title);
+
+        if (close.Count > 0)
+        {
+            AnsiConsole.MarkupLine($"  [{Dim}]With[/] [{Fg}]\"{Markup.Escape(title)}\"[/] "
+                + $"[{Dim}]in the title:[/] " + CartTitles(close));
+        }
     }
     else
     {
