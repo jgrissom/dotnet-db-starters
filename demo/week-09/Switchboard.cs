@@ -83,13 +83,13 @@ public class Switchboard
     // Every call the desk has taken tonight, added up.
     public int TotalCalls
     {
-        get { return 0; }
+        get { return _callers.Sum(caller => caller.CallsTonight); }
     }
 
     // The callers who have rung more than this many times.
     public List<Caller> CalledMoreThan(int calls)
     {
-        return new List<Caller>();
+        return _callers.Where(caller => caller.CallsTonight > calls).ToList();
     }
 
     // The n callers who have rung most, busiest first.
