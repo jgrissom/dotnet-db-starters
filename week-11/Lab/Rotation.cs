@@ -1,0 +1,109 @@
+// ═══════════════════════════════════════════════════════════════════
+//  KDXR 88.1 "The Owl" — what's in rotation tonight.
+//
+//  YOURS, all night. In Task 2 Remove takes a cart off the rotation, and
+//  in Task 3 Save takes a pulled cart's row out of the table too.
+//  Everything else is weeks 9 and 10's, finished.
+// ═══════════════════════════════════════════════════════════════════
+
+public class Rotation
+{
+    // The night's rotation. PRIVATE — nothing outside this class can touch
+    // this list, which is why the members below are the only way in.
+    private readonly List<Song> _songs = new List<Song>();
+
+    public void Add(Song song)
+    {
+        _songs.Add(song);
+    }
+
+    // Ask the list. A second count is a second thing that can be wrong.
+    public int Count => _songs.Count;
+
+    // A COPY. Return _songs itself and the `private` above stops
+    // meaning anything — whoever asked could empty the rotation, and Count
+    // would agree with them.
+    public List<Song> All()
+    {
+        return new List<Song>(_songs);
+    }
+
+    // Week 9. FirstOrDefault hands back the first cart the question is true
+    // for, or null when it is true of none — which is exactly what the loop
+    // did when it fell out of the bottom. First would THROW there instead.
+    public Song? Find(string title)
+    {
+        return _songs.FirstOrDefault(song => song.Title == title);
+    }
+
+    // TODO — Task 2: take the cart with this title off the rotation. True if
+    // there was one, false if there wasn't. The p key calls this.
+    public bool Remove(string title)
+    {
+        return false;
+    }
+
+    // A cart with Id 0 is new, so Add; any other Id has a row, so Update.
+    // TODO — Task 3: a pulled cart isn't in the list, so nothing here takes
+    // its row out of the table, and it comes back the next night.
+    // Load returns on an empty table — the first night — before the Clear().
+    public void Save(DeskContext db)
+    {
+        foreach (Song song in _songs)
+        {
+            if (song.Id == 0)
+            {
+                db.Songs.Add(song);
+            }
+            else
+            {
+                db.Songs.Update(song);
+            }
+        }
+
+        db.SaveChanges();
+    }
+
+    public void Load(DeskContext db)
+    {
+        List<Song> loaded = db.Songs.OrderBy(song => song.Id).ToList();
+
+        if (loaded.Count == 0)
+        {
+            return;
+        }
+
+        _songs.Clear();
+
+        _songs.AddRange(loaded);
+    }
+
+    // Week 9. Where keeps the carts the question is true for, in the order
+    // it found them. ToList turns that into a list to hand back.
+    public List<Song> LongerThan(int seconds)
+    {
+        return _songs.Where(song => song.Seconds > seconds).ToList();
+    }
+
+    // Week 9. Select keeps every cart and hands back one thing about each.
+    public List<string> Titles()
+    {
+        return _songs.Select(song => song.Title).ToList();
+    }
+
+    // Week 9. OrderBy builds a NEW, sorted list and leaves _songs alone.
+    // _songs.Sort(...) would rearrange the rotation itself, and Save would
+    // then write the file in the new order.
+    public List<Song> ByTitle()
+    {
+        return _songs.OrderBy(song => song.Title).ToList();
+    }
+
+    // Week 9. Where again, with a string question: Contains asks whether the
+    // term is anywhere inside the title. == would ask whether the title IS
+    // the term, and that is Find's job.
+    public List<Song> Matching(string term)
+    {
+        return _songs.Where(song => song.Title.Contains(term)).ToList();
+    }
+}
