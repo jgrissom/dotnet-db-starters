@@ -6,7 +6,6 @@
 // ═══════════════════════════════════════════════════════════════════
 
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Text.Json.Serialization;
 
 public class Caller
 {
@@ -18,7 +17,6 @@ public class Caller
 
     // One per caller, because every caller is a separate object. Read it
     // anywhere; write it nowhere except inside this class.
-    [JsonInclude]
     public int CallsTonight { get; private set; }
 
     // The only thing in the program that moves that number.
@@ -31,7 +29,6 @@ public class Caller
     // anything yet, and null is the honest answer rather than a made-up
     // song. Asks() is the only way it moves.
     [NotMapped]
-    [JsonInclude]
     public Song? Favorite { get; private set; }
 
     // Keep the song we were handed — the actual cart in the
