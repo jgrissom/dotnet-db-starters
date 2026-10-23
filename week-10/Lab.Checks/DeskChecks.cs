@@ -72,7 +72,7 @@ public class DeskChecks
         "    public class DeskContext : DbContext\n"
         + "    {\n"
         + "        public DbSet<Caller> Callers { get; set; }\n"
-        + "        public DbSet<Song> Carts { get; set; }\n"
+        + "        public DbSet<Song> Songs { get; set; }\n"
         + "        public DeskContext() { }\n"
         + "        public DeskContext(DbContextOptions<DeskContext> options) : base(options) { }\n"
         + "        protected override void OnConfiguring(DbContextOptionsBuilder options) { ... }\n"
@@ -288,7 +288,7 @@ public class DeskChecks
         Assert.True(cart != null,
             "DeskContext does not have a table for Song.\n"
             + "A class becomes a table by having a DbSet in the context:\n"
-            + "    public DbSet<Song> Carts { get; set; }\n"
+            + "    public DbSet<Song> Songs { get; set; }\n"
             + "👉 Next: add that line to Lab/DeskContext.cs, under the Callers one.");
 
         IKey? key = cart!.FindPrimaryKey();
@@ -301,7 +301,7 @@ public class DeskChecks
         foreach (string kept in new[] { "Title", "Artist", "Seconds", "PlaysTonight" })
         {
             Assert.True(cart.FindProperty(kept) != null,
-                $"Song.{kept} is not a column in the Carts table, and it has to be: it is a "
+                $"Song.{kept} is not a column in the Songs table, and it has to be: it is a "
                 + "fact the cart keeps. Check you have not put [NotMapped] on it.");
         }
 
@@ -309,7 +309,7 @@ public class DeskChecks
             "DeskContext has no table for the callers. Your instructor's Switchboard.cs "
             + "saves to db.Callers, so the context needs both:\n"
             + "    public DbSet<Caller> Callers { get; set; }\n"
-            + "    public DbSet<Song> Carts { get; set; }");
+            + "    public DbSet<Song> Songs { get; set; }");
 
         Assert.True(Context().GetConstructor(Type.EmptyTypes) != null,
             "DeskContext has no constructor that takes nothing. `dotnet ef` and the desk "
@@ -359,10 +359,10 @@ public class DeskChecks
             : snapshot.GetProperty("Model")!.GetValue(Activator.CreateInstance(snapshot, true)) as IModel;
 
         Assert.True(model != null && model.FindEntityType("Song") != null,
-            "Your migration makes no Carts table. It was written before DeskContext had a "
+            "Your migration makes no Songs table. It was written before DeskContext had a "
             + "DbSet<Song> in it, so it only knows about the callers.\n"
             + "👉 Next: one more migration picks up what changed since the last one:\n"
-            + "    dotnet ef migrations add TheCartsMoveIn --project week-10/Lab\n"
+            + "    dotnet ef migrations add TheSongsMoveIn --project week-10/Lab\n"
             + "   then `dotnet ef database update --project week-10/Lab`.");
     }
 
@@ -394,7 +394,7 @@ public class DeskChecks
                     : "")
                 + "    foreach (Song song in _songs)\n"
                 + "    {\n"
-                + "        db.Carts.Add(song);\n"
+                + "        db.Songs.Add(song);\n"
                 + "    }\n"
                 + "\n"
                 + "    db.SaveChanges();");
@@ -410,7 +410,7 @@ public class DeskChecks
         Assert.True(reopened.Count == 3,
             $"Three carts went into the table and the rotation holds {reopened.Count} after "
             + "Load.\n"
-            + "    List<Song> loaded = db.Carts.OrderBy(song => song.Id).ToList();\n"
+            + "    List<Song> loaded = db.Songs.OrderBy(song => song.Id).ToList();\n"
             + "👉 Next: Load reads the table into a list, then Clear() and AddRange(loaded).");
 
         Assert.True(reopened.All().Select(s => s.Title)
@@ -419,7 +419,7 @@ public class DeskChecks
             + "Slack Water, Long Way Round. The hour is built from the first three, so the "
             + "order matters.\n"
             + "⚠️ A table keeps no order of its own. Ask for it:\n"
-            + "    db.Carts.OrderBy(song => song.Id).ToList()");
+            + "    db.Songs.OrderBy(song => song.Id).ToList()");
 
         Assert.True(reopened.All()[0].PlaysTonight == 1,
             $"Nightjar aired once before it was saved and came back saying "
@@ -495,11 +495,11 @@ public class DeskChecks
                     + "👉 Next: a cart with Id 0 is new. Any other Id is a row that changes:\n"
                     + "    if (song.Id == 0)\n"
                     + "    {\n"
-                    + "        db.Carts.Add(song);\n"
+                    + "        db.Songs.Add(song);\n"
                     + "    }\n"
                     + "    else\n"
                     + "    {\n"
-                    + "        db.Carts.Update(song);\n"
+                    + "        db.Songs.Update(song);\n"
                     + "    }");
             }
         }
