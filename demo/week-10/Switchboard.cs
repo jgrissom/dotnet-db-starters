@@ -50,7 +50,14 @@ public class Switchboard
     {
         foreach (Caller caller in _callers)
         {
-            db.Callers.Add(caller);
+            if (caller.Id == 0)
+            {
+                db.Callers.Add(caller);
+            }
+            else
+            {
+                db.Callers.Update(caller);
+            }
         }
 
         db.SaveChanges();
