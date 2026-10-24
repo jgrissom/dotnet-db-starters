@@ -73,6 +73,14 @@ public class Switchboard
             }
         }
 
+        foreach (Caller row in db.Callers.ToList())
+        {
+            if (!_callers.Any(caller => caller.Id == row.Id))
+            {
+                db.Callers.Remove(row);
+            }
+        }
+
         db.SaveChanges();
     }
 
