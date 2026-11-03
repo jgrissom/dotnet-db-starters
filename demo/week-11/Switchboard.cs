@@ -46,6 +46,7 @@ public class Switchboard
         return caller;
     }
 
+    // Your instructor's, written live in class. The x key calls it.
     public bool Remove(string name)
     {
         Caller? found = Find(name);
@@ -70,14 +71,6 @@ public class Switchboard
             else
             {
                 db.Callers.Update(caller);
-            }
-        }
-
-        foreach (Caller row in db.Callers.ToList())
-        {
-            if (!_callers.Any(caller => caller.Id == row.Id))
-            {
-                db.Callers.Remove(row);
             }
         }
 
