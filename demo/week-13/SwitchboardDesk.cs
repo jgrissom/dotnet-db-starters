@@ -75,6 +75,11 @@ public static class SwitchboardDesk
                 AnsiConsole.MarkupLine($"  [{Coral}]Refused:[/] [{Fg}]that file is damaged.[/] [{Dim}]Nothing was added.[/]");
                 return;
             }
+            catch (InvalidDataException problem)
+            {
+                AnsiConsole.MarkupLine($"  [{Coral}]Refused:[/] [{Fg}]{Markup.Escape(problem.Message)}[/] [{Dim}]Nothing was added.[/]");
+                return;
+            }
         }
 
     }
