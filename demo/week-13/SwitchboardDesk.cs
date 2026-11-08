@@ -8,6 +8,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 using Spectre.Console;
+using System.Text.Json;
 
 public static class SwitchboardDesk
 {
@@ -44,13 +45,37 @@ public static class SwitchboardDesk
 
     public static void TakeDayList(Switchboard switchboard, DeskContext db)
     {
-        Console.Write("  Day list file: ");
-        string path = (Console.ReadLine() ?? "").Trim();
+        while (true)
+        {
+            Console.Write("  Day list file (Enter to give up): ");
+            string? typed = Console.ReadLine();
 
-        int added = switchboard.Import(path);
-        switchboard.Save(db);
+            if (string.IsNullOrWhiteSpace(typed))
+            {
+                return;
+            }
 
-        AnsiConsole.MarkupLine($"  [{Coral}]Day list:[/] [{Fg}]{added} new[/] "
-            + $"[{Dim}]- {switchboard.Count} on the switchboard.[/]");
+            string path = typed.Trim();
+
+            try
+            {
+                int added = switchboard.Import(path);
+                switchboard.Save(db);
+
+                AnsiConsole.MarkupLine($"  [{Coral}]Day list:[/] [{Fg}]{added} new[/] "
+                    + $"[{Dim}]- {switchboard.Count} on the switchboard.[/]");
+                return;
+            }
+            catch (IOException)
+            {
+                AnsiConsole.MarkupLine($"  [{Dim}]No file at[/] [{Fg}]\"{Markup.Escape(path)}\"[/][{Dim}].[/]");
+            }
+            catch (JsonException)
+            {
+                AnsiConsole.MarkupLine($"  [{Coral}]Refused:[/] [{Fg}]that file is damaged.[/] [{Dim}]Nothing was added.[/]");
+                return;
+            }
+        }
+
     }
 }
