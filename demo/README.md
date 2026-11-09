@@ -4,6 +4,7 @@ From week 8, the instructor builds part of the lab's station live in class and p
 
 - **You never edit these files** — they're the instructor's, so copying one in can never overwrite your work.
 - **A folder starts empty and fills up during that week's class.** Working at home after class? The files are already here.
+- **Week 14's are to read, not to copy.** That week changes the database's tables, and a class or a migration copied into your project would change your own next migration. Read them here on GitHub.
 
 ## For the instructor: reset once per term
 
