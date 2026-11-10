@@ -100,11 +100,17 @@ public class Switchboard
         _callers.AddRange(loaded);
     }
 
-    // Your instructor's, written live in class. The f key calls it.
+    // The names of the callers who have asked for this title, in order by
+    // name. The database answers it: everything before ToList is sent as SQL.
     public List<string> AskedFor(DeskContext db, string title)
     {
-        return new List<string>();
+        return db.Callers
+            .Where(caller => caller.Requests.Any(request => request.Title == title))
+            .OrderBy(caller => caller.Name)
+            .Select(caller => caller.Name)
+            .ToList();
     }
+
 
     // ── the night's numbers ────────────────────────────────────────────────
 
