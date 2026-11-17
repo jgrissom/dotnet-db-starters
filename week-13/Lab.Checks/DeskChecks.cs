@@ -25,6 +25,7 @@
 // ═══════════════════════════════════════════════════════════════════
 
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using System.Text.RegularExpressions;
@@ -159,22 +160,40 @@ public class DeskChecks
         + "{\"Title\":\"Night Freight\",\"Artist\":\"Marguerite Vance\",\"Seconds\":198},"
         + "{\"Title\":\"Dead Air\",\"Artist\":\"Nobody At All\",\"Seconds\":-198}]";
 
-    // Program.cs with its comments taken out, found by walking up from here.
-    private static string ProgramSource()
+    // Program.cs with its comments taken out. It looks above the test run
+    // first, then above where you ran the command, then beside this file's
+    // own folder, which the build records and no run can move.
+    private static string ProgramSource([CallerFilePath] string thisFile = "")
     {
-        DirectoryInfo? folder = new DirectoryInfo(AppContext.BaseDirectory);
-
-        while (folder != null && !File.Exists(Path.Combine(folder.FullName, "Lab", "Program.cs")))
+        List<string> starts = new()
         {
-            folder = folder.Parent;
+            AppContext.BaseDirectory,
+            Directory.GetCurrentDirectory(),
+            Path.GetDirectoryName(thisFile) ?? "",
+        };
+
+        foreach (string start in starts.Where(start => start != ""))
+        {
+            DirectoryInfo? folder = new DirectoryInfo(start);
+
+            while (folder != null && !File.Exists(Path.Combine(folder.FullName, "Lab", "Program.cs")))
+            {
+                folder = folder.Parent;
+            }
+
+            if (folder != null)
+            {
+                string[] lines = File.ReadAllLines(Path.Combine(folder.FullName, "Lab", "Program.cs"));
+                return string.Join("\n", lines.Where(line => !line.TrimStart().StartsWith("//")));
+            }
         }
 
-        Assert.True(folder != null,
-            "I can't find Lab/Program.cs. Run this from the top of your repo, with "
-            + "week-13/Lab and week-13/Lab.Checks side by side.");
-
-        string[] lines = File.ReadAllLines(Path.Combine(folder!.FullName, "Lab", "Program.cs"));
-        return string.Join("\n", lines.Where(line => !line.TrimStart().StartsWith("//")));
+        Assert.Fail(
+            "I can't find Lab/Program.cs. I looked above each of these folders:\n    "
+            + string.Join("\n    ", starts)
+            + "\nweek-13/Lab and week-13/Lab.Checks have to sit side by side. If they do, "
+            + "show your instructor this message.");
+        return "";
     }
 
     // ── Check 1 — everything the desk already does, and still has to ───────
