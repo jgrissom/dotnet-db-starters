@@ -8,7 +8,6 @@
 // ═══════════════════════════════════════════════════════════════════
 
 using Spectre.Console;
-using System.Text.Json;
 
 public static class SwitchboardDesk
 {
@@ -41,46 +40,18 @@ public static class SwitchboardDesk
             AnsiConsole.MarkupLine($"  [{Dim}]Nobody called[/] [{Fg}]\"{Markup.Escape(name)}\"[/] "
                 + $"[{Dim}]on the switchboard.[/]");
         }
+
     }
 
     public static void TakeDayList(Switchboard switchboard, DeskContext db)
     {
-        while (true)
-        {
-            Console.Write("  Day list file (Enter to give up): ");
-            string? typed = Console.ReadLine();
+        Console.Write("  Day list file: ");
+        string path = (Console.ReadLine() ?? "").Trim();
 
-            if (string.IsNullOrWhiteSpace(typed))
-            {
-                return;
-            }
+        int added = switchboard.Import(path);
+        switchboard.Save(db);
 
-            string path = typed.Trim();
-
-            try
-            {
-                int added = switchboard.Import(path);
-                switchboard.Save(db);
-
-                AnsiConsole.MarkupLine($"  [{Coral}]Day list:[/] [{Fg}]{added} new[/] "
-                    + $"[{Dim}]- {switchboard.Count} on the switchboard.[/]");
-                return;
-            }
-            catch (IOException)
-            {
-                AnsiConsole.MarkupLine($"  [{Dim}]No file at[/] [{Fg}]\"{Markup.Escape(path)}\"[/][{Dim}].[/]");
-            }
-            catch (JsonException)
-            {
-                AnsiConsole.MarkupLine($"  [{Coral}]Refused:[/] [{Fg}]that file is damaged.[/] [{Dim}]Nothing was added.[/]");
-                return;
-            }
-            catch (InvalidDataException problem)
-            {
-                AnsiConsole.MarkupLine($"  [{Coral}]Refused:[/] [{Fg}]{Markup.Escape(problem.Message)}[/] [{Dim}]Nothing was added.[/]");
-                return;
-            }
-        }
-
+        AnsiConsole.MarkupLine($"  [{Coral}]Day list:[/] [{Fg}]{added} new[/] "
+            + $"[{Dim}]- {switchboard.Count} on the switchboard.[/]");
     }
 }
