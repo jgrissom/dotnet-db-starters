@@ -60,6 +60,7 @@
 // ═══════════════════════════════════════════════════════════════════
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.ExceptionServices;
 
 namespace Project.Checks;
@@ -231,20 +232,40 @@ internal static class StudentCode
         }
     }
 
-    // Your project's own source, without comments or migrations, found by
-    // walking up from here.
-    internal static string ProjectSource()
+    // Your project's own source, without comments or migrations. It looks
+    // above the test run first, then above where you ran the command, then
+    // beside this file's own folder, which the build records and no run can move.
+    internal static string ProjectSource([CallerFilePath] string thisFile = "")
     {
-        DirectoryInfo? folder = new DirectoryInfo(AppContext.BaseDirectory);
-
-        while (folder != null && !File.Exists(Path.Combine(folder.FullName, "Project", "Project.csproj")))
+        List<string> starts = new()
         {
-            folder = folder.Parent;
+            AppContext.BaseDirectory,
+            Directory.GetCurrentDirectory(),
+            Path.GetDirectoryName(thisFile) ?? "",
+        };
+
+        DirectoryInfo? folder = null;
+
+        foreach (string start in starts.Where(start => start != ""))
+        {
+            folder = new DirectoryInfo(start);
+
+            while (folder != null && !File.Exists(Path.Combine(folder.FullName, "Project", "Project.csproj")))
+            {
+                folder = folder.Parent;
+            }
+
+            if (folder != null)
+            {
+                break;
+            }
         }
 
         Assert.True(folder != null,
-            "I can't find Project/Project.csproj above this test run. Run this from the top "
-            + "of your project repo, with Project and Project.Checks side by side.");
+            "I can't find Project/Project.csproj. I looked above each of these folders:\n    "
+            + string.Join("\n    ", starts)
+            + "\nProject and Project.Checks have to sit side by side at the top of your "
+            + "project repo. If they do, show your instructor this message.");
 
         string project = Path.Combine(folder!.FullName, "Project");
 
