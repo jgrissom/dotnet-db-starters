@@ -13,10 +13,6 @@ public class Caller
     // The name they gave the desk. Set once, when the call comes in.
     public string Name { get; private set; }
 
-    // Whether the desk takes this caller's calls. Every caller starts out
-    // welcome, and nobody has ever been turned away.
-    public bool Welcome { get; set; } = true;
-
     // When this caller first rang the desk. Nobody wrote it down for the
     // callers already in the table, so for them it is nothing at all.
     public DateTime? FirstCalled { get; private set; }
@@ -32,7 +28,6 @@ public class Caller
 
         return FirstCalled.Value.ToString("yyyy-MM-dd");
     }
-
 
     // One per caller, because every caller is a separate object. Read it
     // anywhere; write it nowhere except inside this class.
